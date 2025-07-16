@@ -312,6 +312,13 @@ all_sites = griffin_functions.define_fetch_interval('Total sites',all_sites,chro
 
 #convert to pybedtools and merge overlapping segments
 start_time = time.time()
+
+# 2025.7.15 zjp modified
+all_sites['fetch_start'] = all_sites['fetch_start'].astype(int)
+all_sites['fetch_end'] = all_sites['fetch_end'].astype(int)
+all_sites['position'] = all_sites['position'].astype(int)
+# end
+
 all_sites_bed = pybedtools.BedTool.from_dataframe(all_sites[[chrom_column,'fetch_start','fetch_end']])
 all_sites_bed = all_sites_bed.sort()
 all_sites_bed = all_sites_bed.merge()

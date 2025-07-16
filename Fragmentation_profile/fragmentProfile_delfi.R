@@ -113,12 +113,13 @@ tcmeres <- gaps[grepl("centromere|telomere", gaps$type)]
 # AB$arm <- armlevels[subjectHits(findOverlaps(AB, arms))]
 # end 
 
-
+# 2025.7.16 Zhou Junpeng modified
 # AB <- AB[-queryHits(findOverlaps(AB, gaps))]
 overlaps <- findOverlaps(AB, gaps)
 if (length(queryHits(overlaps)) > 0) {
   AB <- AB[-queryHits(overlaps)]
 }
+# end 
 
 seqinfo(AB) <- seqinfo(Hsapiens)[seqlevels(seqinfo(AB))]
 AB <- trim(AB)
@@ -126,6 +127,14 @@ AB <- trim(AB)
 ###### Read fragments from bam ###### only apply to small file due to high memory demand
 param <- ScanBamParam(flag = scanBamFlag(isSecondaryAlignment=FALSE, isUnmappedQuery=FALSE), mapqFilter=30)
 galp <- readGAlignmentPairs(inFile, param = param)
+
+# 2025.7.16 Zhou Junpeng modified 
+if (!all(grepl("^chr", seqlevels(galp)))) {
+  stop("Error: Please provide BAM files mapped with reference files starting with 'chr' in chromosomes.
+       You can search the reference files information on https://www.ncbi.nlm.nih.gov/datasets/genome/?taxon=9606")
+}
+# end
+
 frags <- granges(keepSeqlevels(galp, paste0("chr", c(1:22,"X","Y")), pruning.mode="coarse"), on.discordant.seqnames="drop")
 w.all <- width(frags)
 q.all <- quantile(w.all, c(0.001, 0.999))

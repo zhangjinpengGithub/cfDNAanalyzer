@@ -511,6 +511,12 @@ def merge_sites(input_list):
     current_sites = griffin_functions.import_and_filter_sites(site_name,site_file,strand_column,chrom_column,position_column,chroms,ascending,sort_by,number_of_sites)   
     current_sites = griffin_functions.define_fetch_interval(site_name,current_sites,chrom_column,position_column,chroms,chrom_sizes_path,norm_window[0],norm_window[1])
 
+    # 2025.7.15 zjp modified
+    current_sites['fetch_start'] = current_sites['fetch_start'].astype(int)
+    current_sites['fetch_end'] = current_sites['fetch_end'].astype(int)
+    current_sites['position'] = current_sites['position'].astype(int)
+    # end
+    
     sys.stdout.flush()
 
     #dict to hold results 
