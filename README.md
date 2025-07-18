@@ -31,6 +31,7 @@ For detailed guidance on feature visualization, feature selection optimization, 
     <li><a href="#Feature-Processing-and-Selection">Feature Processing and Selection</a></li>
     <li><a href="#Two-class-Machine-Learning">Two-class Machine Learning Models</a></li>
     <li><a href="#Multi-class-Machine-Learning">Multi-class Machine Learning Models</a></li>
+    <li><a href="#Composite-Scoring-System">Composite Scoring System</a></li>
   </ul>
 </li>
 
@@ -708,6 +709,10 @@ sample3,1,concat,concat,filter_DR_0.2,KNN,0.4,0.5,0.1
 sample4,1,concat,concat,filter_DR_0.2,KNN,0.6,0.3,0.1
 sample5,1,concat,concat,filter_DR_0.2,KNN,0.4,0.5,0.1
 ```
+
+### Composite Scoring System
+There is a script loacted at `/cfDNAanalyzer/Composite_scoring_system/Composite_scoring_system.R` for constructing a composite scoring system that integrates both performance and usability metrics to evaluate model performance in two-class or multi-class machine learning. <br>
+Visualization of composite scoring system can be found under the directory `/cfDNAanalyzer/Composite_scoring_system`.
 
 ## Versions of packages in our environment
 
