@@ -27,6 +27,7 @@ For detailed guidance on feature visualization, feature selection optimization, 
   <ul>
     <li><a href="#Structure-of-output-directory">Structure of output directory</a></li>
     <li><a href="#Features">Features</a></li>
+    <li><a href="#Feature-Visualization">Feature Visualization</a></li>
     <li><a href="#Feature-Processing-and-Selection">Feature Processing and Selection</a></li>
     <li><a href="#Two-class-Machine-Learning">Two-class Machine Learning Models</a></li>
     <li><a href="#Multi-class-Machine-Learning">Multi-class Machine Learning Models</a></li>
