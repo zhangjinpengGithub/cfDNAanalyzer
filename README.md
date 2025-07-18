@@ -13,7 +13,7 @@ For detailed guidance on feature visualization, feature selection optimization, 
 
   <ul>
     <li><a href="#Environment-requirement-and-installation">Environment requirement and installation</a></li>
-    <li><a href="#Raw-data-processing-(optional)">Raw data processing (optional)</a></li>
+    <li><a href="#Raw-data-processing-optional">Raw data processing (optional)</a></li>
     <li><a href="#Supported-features">Supported features</a></li>
     <li><a href="#Supported-feature-processing-methods-and-machine-learning-models">Supported feature processing methods and machine learning models</a></li>
     <li><a href="#Usage">Usage</a></li>
