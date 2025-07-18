@@ -13,7 +13,7 @@ For detailed guidance on feature visualization, feature selection optimization, 
 
   <ul>
     <li><a href="#Environment-requirement-and-installation">Environment requirement and installation</a></li>
-    <li><a href="#Raw-data-processing">Raw data processing</a></li>
+    <li><a href="#Raw-data-processing-(optional)">Raw data processing (optional)</a></li>
     <li><a href="#Supported-features">Supported features</a></li>
     <li><a href="#Supported-feature-processing-methods-and-machine-learning-models">Supported feature processing methods and machine learning models</a></li>
     <li><a href="#Usage">Usage</a></li>
@@ -58,7 +58,7 @@ conda activate cfDNAanalyzer
 Rscript install_R_packages.R
 ```
 
-### Raw data processing
+### Raw data processing (optional)
 The input file format for cfDNAanalyzer is BAM. You can generate BAM files from raw sequencing data (FASTQ) using your own pipeline or our built-in script, `Raw_data_processing.sh`, located in the `/cfDNAanalyzer` directory. <br>
 
 **Note:** If using Raw_data_processing.sh, ensure the following software is installed: <br>
@@ -66,7 +66,7 @@ The input file format for cfDNAanalyzer is BAM. You can generate BAM files from
 * Bowtie2 or BWA (for alignment)<br>
 * SAMtools (for BAM processing)<br>
 
-### Usage for Raw_data_processing.sh
+#### Usage for Raw_data_processing.sh
 ```shell
 bash Raw_data_processing.sh -i <InputFile> -o <OutputDirectory> -t <threads> [Options]
 ```
