@@ -16,7 +16,7 @@ Usage:
   -s  STR       Sequencing method of input BAM files (single/pair). Default: [pair]
   -t  INT       Number of threads to use. Default: [1]
   
------ Options specific software Trim-galore -----
+----- Options specific for software Trim-galore -----
   -q  INT       Trim low-quality ends from reads in addition to adapter removal. Default Phred score: [20].
   -l  INT       Discard reads that became shorter than length INT (bp) because of either quality or adapter trimming. A value of '0' effectively disables this behaviour. Default: [20].
 
