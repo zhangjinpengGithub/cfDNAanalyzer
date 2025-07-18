@@ -5,7 +5,7 @@ cfDNAanalyzer (<ins>c</ins>ell-<ins>f</ins>ree <ins>DNA</ins> sequencing data <i
 (3) ***Machine Learning Model Building***, supporting the development of both single-modality and multiple-modality predictive models for disease detection and classification.<br>
 <br>
 
-Refer to the [<ins>cfDNAanalyzer tutorial</ins>](https://liymlab.github.io/cfDNAanalyzer/Tutorial/) for detailed instructions. 
+For detailed guidance on feature visualization, feature selection optimization, and machine learning model evaluation in cancer detection/classification, please refer to the [<ins>cfDNAanalyzer tutorial</ins>](https://liymlab.github.io/cfDNAanalyzer/Tutorial/). 
 
 <summary><h2>Table of Contents</h2></summary>
 <li>
@@ -13,15 +13,17 @@ Refer to the [<ins>cfDNAanalyzer tutorial</ins>](https://liymlab.github.io/cfDNA
 
   <ul>
     <li><a href="#Environment-requirement-and-installation">Environment requirement and installation</a></li>
+    <li><a href="#Raw-data-processing">Raw data processing</a></li>
     <li><a href="#Supported-features">Supported features</a></li>
     <li><a href="#Supported-feature-processing-methods-and-machine-learning-models">Supported feature processing methods and machine learning models</a></li>
     <li><a href="#Usage">Usage</a></li>
     <li><a href="#Run-the-usage-example">Run the usage example</a></li>
   </ul>
 </li>
+
 <li>
   <a href="#Output-files">Output files</a>
-
+  
   <ul>
     <li><a href="#Structure-of-output-directory">Structure of output directory</a></li>
     <li><a href="#Features">Features</a></li>
@@ -30,6 +32,7 @@ Refer to the [<ins>cfDNAanalyzer tutorial</ins>](https://liymlab.github.io/cfDNA
     <li><a href="#Multi-class-Machine-Learning">Multi-class Machine Learning Models</a></li>
   </ul>
 </li>
+
 <li>
   <a href="#Versions-of-packages-in-our-environment">Versions of packages in our environment</a>
   <ul>
@@ -37,6 +40,7 @@ Refer to the [<ins>cfDNAanalyzer tutorial</ins>](https://liymlab.github.io/cfDNA
     <li><a href="#R">R</a></li>
   </ul>
 </li>
+
 <li>
   <a href="#Contact">Contact</a>
 </li>
@@ -52,6 +56,38 @@ conda env create -f environment.yml
 conda activate cfDNAanalyzer
 Rscript install_R_packages.R
 ```
+
+## Raw data processing
+The input file format for cfDNAanalyzer is BAM file. You can process raw sequencing data (FASTQ files) into BAM files by yourself or our built-in script `Raw_data_processing.sh` under the directory `/cfDNAanalyzer`.
+If you want to use `Raw_data_processing.sh`, please ensure that the following software is installed: Trim-galore, Bowtie2, BWA, SAMtools.
+### Usage for Raw_data_processing.sh
+```shell
+bash Raw_data_processing.sh -i <InputFile> -o <OutputDirectory> -t <threads> [Options]
+```
+#### Options:
+```
+-----General options -----  
+  -I  FILE      A text file containing all input FASTQ files with one FASTQ file per line.
+                FASTQ files must end with "fastq.gz".
+                IF input is pair-end FASTQ files, files should have the same prefix like 'sample_1.fastq.gz, sample_2.fastq.gz'
+  -o  DIR       Output directory for all the results. Default: [./]
+  -s  STR       Sequencing method of input BAM files (single/pair). Default: [pair]
+  -t  INT       Number of threads to use. Default: [1]
+  
+----- Options specific Trim-galore -----
+  -q  INT       Trim low-quality ends from reads in addition to adapter removal. Default Phred score: [20].
+  -l  INT       Discard reads that became shorter than length INT (bp) because of either quality or adapter trimming. A value of '0' effectively disables this behaviour. Default: [20].
+
+----- Options specific for aligning -----
+  -a  STR       Aligning software to use, Bowtie2 or BWA. Default: [BWA].
+  -r  FILE      Reference genome in FASTA format to bulid index for Bowtie2 or BWA.
+  
+----- Options specific for SAMtools -----
+  -F  INT       only include reads with none of the FLAGS in INT present. Default: [1796].
+  -f  INT       only include reads with all of the FLAGs in INT present. Default: [3].
+  -Q  INT       only include reads with mapping quality >= INT. Default: [20].
+```
+
 ### Supported features
 ### 1.  Genome-wide features:
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.1  <ins>C</ins>opy <ins>N</ins>umber <ins>A</ins>lterations (CNA) ([<ins>Adalsteinsson *et al, Nat. Commun.*, 2017</ins>](https://www.nature.com/articles/s41467-017-00965-y))<br>
