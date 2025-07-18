@@ -588,6 +588,7 @@ sample4,0,1.180354,1.51295,0.361517,...
 
 ### Feature visualization
 There is a script located at `/cfDNAanalyzer/Feature_visualization/Feature_visualization.R` for visualizing multiple features extracted by cfDNAanalyzer, comparing the similarity of various features, and identifying redundant features. <br>
+
 Visualization results for features can be found under the directory `/cfDNAanalyzer/Feature_visualization`.
 
 ### Feature processing and selection
