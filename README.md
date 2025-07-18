@@ -57,7 +57,7 @@ conda activate cfDNAanalyzer
 Rscript install_R_packages.R
 ```
 
-## Raw data processing
+### Raw data processing
 The input file format for cfDNAanalyzer is BAM. You can generate BAM files from raw sequencing data (FASTQ) using your own pipeline or our built-in script, `Raw_data_processing.sh`, located in the `/cfDNAanalyzer` directory. <br>
 
 **Note:** If using Raw_data_processing.sh, ensure the following software is installed: <br>
@@ -422,6 +422,9 @@ bash cfDNAanalyzer.sh -I ./example/bam_input.txt -F CNA,OCF -g hg19 -b ./example
 ```
 ### Features
 Output files under `Features` directory consist of rows representing different samples. The `sample` column holds the sample's file name, followed by a `label` column that indicates the sample's classification.
+
+You can visualize the output files containing different features using the script located at `/cfDNAanalyzer/Feature_visualization.R`
+
 #### Copy Number Alterations (CNA)
 In ```CNA.csv```, columns after `label` contain the estimated copy number for each bin. Column name `[chr]_[chrStart]_[chrEnd]` of these columns specifies the chromosome, start coordinate and end coordinate for each bin.
 ```r
