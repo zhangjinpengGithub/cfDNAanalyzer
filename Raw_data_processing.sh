@@ -16,15 +16,15 @@ Usage:
   -s  STR       Sequencing method of input BAM files (single/pair). Default: [pair]
   -t  INT       Number of threads to use. Default: [1]
   
------ Options specific Trim-galore -----
+----- Options specific software Trim-galore -----
   -q  INT       Trim low-quality ends from reads in addition to adapter removal. Default Phred score: [20].
   -l  INT       Discard reads that became shorter than length INT (bp) because of either quality or adapter trimming. A value of '0' effectively disables this behaviour. Default: [20].
 
------ Options specific for aligning -----
+----- Options specific for alignment -----
   -a  STR       Aligning software to use, Bowtie2 or BWA. Default: [BWA].
   -r  FILE      Reference genome in FASTA format to bulid index for Bowtie2 or BWA.
   
------ Options specific for SAMtools -----
+----- Options specific for software SAMtools -----
   -F  INT       only include reads with none of the FLAGS in INT present. Default: [1796].
   -f  INT       only include reads with all of the FLAGs in INT present. Default: [3].
   -Q  INT       only include reads with mapping quality >= INT. Default: [20].
