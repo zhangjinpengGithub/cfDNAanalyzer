@@ -423,7 +423,6 @@ bash cfDNAanalyzer.sh -I ./example/bam_input.txt -F CNA,OCF -g hg19 -b ./example
 ### Features
 Output files under `Features` directory consist of rows representing different samples. The `sample` column holds the sample's file name, followed by a `label` column that indicates the sample's classification.
 
-You can visualize the output files containing different features using the script located at `/cfDNAanalyzer/Feature_visualization.R`
 
 #### Copy Number Alterations (CNA)
 In ```CNA.csv```, columns after `label` contain the estimated copy number for each bin. Column name `[chr]_[chrStart]_[chrEnd]` of these columns specifies the chromosome, start coordinate and end coordinate for each bin.
@@ -569,6 +568,8 @@ sample2,1,1.406582,1.938656,1.691248,...
 sample3,0,1.220205,1.239343,2.053586,...
 sample4,0,1.180354,1.51295,0.361517,...
 ```
+
+There is a script loacted at `/cfDNAanalyzer/Feature_visualization/Feature_visualization.R` for visualizing multiple features extracted by cfDNAanalyzer, comparing the similarity of various features, and identifying redundant features.
 
 ### Feature Processing and Selection
 Output files under `Feature_Processing_and_Selection/Feature_Processing` and `Feature_Processing_and_Selection/Feature_Selection` directory consist of rows representing different samples. The `sample` column holds the sample's file name, followed by a `label` column that indicates the sample's classification.
