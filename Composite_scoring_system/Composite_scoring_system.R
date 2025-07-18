@@ -16,6 +16,7 @@ CNA <- CNA[
 ]
 CNA$feature = "CNA"
 all_metric = rbind(all_metric,CNA) 
+
 all_metric$accuracy_normalized <- (all_metric$accuracy - min(all_metric$accuracy)) / (max(all_metric$accuracy) - min(all_metric$accuracy))
 all_metric$precision_normalized <- (all_metric$precision - min(all_metric$precision)) / (max(all_metric$precision) - min(all_metric$precision))
 all_metric$recall_normalized <- (all_metric$recall - min(all_metric$recall)) / (max(all_metric$recall) - min(all_metric$recall))
