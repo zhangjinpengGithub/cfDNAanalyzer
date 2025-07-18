@@ -27,11 +27,11 @@ For detailed guidance on feature visualization, feature selection optimization, 
   <ul>
     <li><a href="#Structure-of-output-directory">Structure of output directory</a></li>
     <li><a href="#Features">Features</a></li>
-    <li><a href="#Feature-Visualization">Feature Visualization</a></li>
-    <li><a href="#Feature-Processing-and-Selection">Feature Processing and Selection</a></li>
-    <li><a href="#Two-class-Machine-Learning">Two-class Machine Learning Models</a></li>
-    <li><a href="#Multi-class-Machine-Learning">Multi-class Machine Learning Models</a></li>
-    <li><a href="#Composite-Scoring-System">Composite Scoring System</a></li>
+    <li><a href="#Feature-visualization">Feature visualization</a></li>
+    <li><a href="#Feature-processing-and-selection">Feature processing and selection</a></li>
+    <li><a href="#Two-class-machine-learning">Two-class machine learning models</a></li>
+    <li><a href="#Multi-class-machine-learning">Multi-class machine learning models</a></li>
+    <li><a href="#Composite-scoring-System">Composite scoring system</a></li>
   </ul>
 </li>
 
@@ -586,14 +586,14 @@ sample3,0,1.220205,1.239343,2.053586,...
 sample4,0,1.180354,1.51295,0.361517,...
 ```
 
-### Feature Visualization
+### Feature visualization
 There is a script located at `/cfDNAanalyzer/Feature_visualization/Feature_visualization.R` for visualizing multiple features extracted by cfDNAanalyzer, comparing the similarity of various features, and identifying redundant features. <br>
 Visualization results for features can be found under the directory `/cfDNAanalyzer/Feature_visualization`.
 
-### Feature Processing and Selection
+### Feature processing and selection
 Output files under `Feature_Processing_and_Selection/Feature_Processing` and `Feature_Processing_and_Selection/Feature_Selection` directory consist of rows representing different samples. The `sample` column holds the sample's file name, followed by a `label` column that indicates the sample's classification.
 
-#### Feature Processing
+#### Feature processing
 
 In `[FeatureName].csv`, columns after `label` contain **processed** feature data for each sample.
 ```r
@@ -604,7 +604,7 @@ sample3,0,-0.417439,-0.567277,-0.846278,...
 sample4,0,-0.85468,-0.255078,-0.54376,...
 ```
 
-#### Feature Selection
+#### Feature selection
 
 In`[FeatureName]_[embeddedMethod]_selectd.csv`,`[FeatureName]_[filterMethod]_selectd.csv` and `[FeatureName]_[wrapperMethod]_selectd.csv`, columns after `label` contain **selected** feature data for each sample.
 
@@ -616,7 +616,7 @@ sample3,0,0.626594,0.970688,0.588356,...
 sample4,0,-0.967271,-0.476624,-2.259162,...
 ```
 
-### Two-class Machine Learning
+### Two-class machine learning
 
 #### Single Modality/[FeatureName]
 
@@ -664,7 +664,7 @@ sample4,1,concat,concat,filter_DR_0.2,KNN,0.6,0.4
 sample5,1,concat,concat,filter_DR_0.2,KNN,0.4,0.6
 ```
 
-### Multi-class Machine Learning
+### Multi-class machine learning
 
 #### Single modality
 `single_modality_metrics.csv` contains classifier and feature selection method used, followed by various performance metrics such as accuracy, macro-precision, macro-recall, macro-f1 score, computation time and memory usage (peak memory).
@@ -710,8 +710,9 @@ sample4,1,concat,concat,filter_DR_0.2,KNN,0.6,0.3,0.1
 sample5,1,concat,concat,filter_DR_0.2,KNN,0.4,0.5,0.1
 ```
 
-### Composite Scoring System
+### Composite scoring system
 There is a script located at `/cfDNAanalyzer/Composite_scoring_system/Composite_scoring_system.R` for constructing a composite scoring system that integrates both performance and usability metrics to evaluate model performance in two-class or multi-class machine learning. The composite scoring system facilitates fair comparison between different features to further guide multi-feature integration. <br>
+
 Visualization of composite scoring system can be found under the directory `/cfDNAanalyzer/Composite_scoring_system`.
 
 ## Versions of packages in our environment
