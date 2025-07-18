@@ -29,8 +29,8 @@ For detailed guidance on feature visualization, feature selection optimization, 
     <li><a href="#Features">Features</a></li>
     <li><a href="#Feature-visualization">Feature visualization</a></li>
     <li><a href="#Feature-processing-and-selection">Feature processing and selection</a></li>
-    <li><a href="#Two-class-machine-learning">Two-class machine learning models</a></li>
-    <li><a href="#Multi-class-machine-learning">Multi-class machine learning models</a></li>
+    <li><a href="#Two-class-machine-learning-models">Two-class machine learning models</a></li>
+    <li><a href="#Multi-class-machine-learning-models">Multi-class machine learning models</a></li>
     <li><a href="#Composite-scoring-System">Composite scoring system</a></li>
   </ul>
 </li>
@@ -616,7 +616,7 @@ sample3,0,0.626594,0.970688,0.588356,...
 sample4,0,-0.967271,-0.476624,-2.259162,...
 ```
 
-### Two-class machine learning
+### Two-class machine learning models
 
 #### Single Modality/[FeatureName]
 
@@ -664,7 +664,7 @@ sample4,1,concat,concat,filter_DR_0.2,KNN,0.6,0.4
 sample5,1,concat,concat,filter_DR_0.2,KNN,0.4,0.6
 ```
 
-### Multi-class machine learning
+### Multi-class machine learning models
 
 #### Single modality
 `single_modality_metrics.csv` contains classifier and feature selection method used, followed by various performance metrics such as accuracy, macro-precision, macro-recall, macro-f1 score, computation time and memory usage (peak memory).
