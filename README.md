@@ -584,7 +584,9 @@ sample3,0,1.220205,1.239343,2.053586,...
 sample4,0,1.180354,1.51295,0.361517,...
 ```
 
-There is a script loacted at `/cfDNAanalyzer/Feature_visualization/Feature_visualization.R` for visualizing multiple features extracted by cfDNAanalyzer, comparing the similarity of various features, and identifying redundant features.
+### Feature Visualization
+There is a script loacted at `/cfDNAanalyzer/Feature_visualization/Feature_visualization.R` for visualizing multiple features extracted by cfDNAanalyzer, comparing the similarity of various features, and identifying redundant features. <br>
+Visualization results for features can be found under the directory `/cfDNAanalyzer/Feature_visualization`.
 
 ### Feature Processing and Selection
 Output files under `Feature_Processing_and_Selection/Feature_Processing` and `Feature_Processing_and_Selection/Feature_Selection` directory consist of rows representing different samples. The `sample` column holds the sample's file name, followed by a `label` column that indicates the sample's classification.
