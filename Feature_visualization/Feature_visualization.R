@@ -54,8 +54,6 @@ df_cancer <- df_cancer[df_cancer$chr != "X", ]
 df_cancer$chr <- as.numeric(df_cancer$chr)
 df_cancer$start <- as.numeric(df_cancer$start)
 df_cancer <- df_cancer[order(df_cancer$chr, df_cancer$start), ]
-
-# add specific symbol columns to the data frame.
 df_healthy$combine <- 1:nrow(df_healthy) 
 df_healthy$sample <- "Healthy"
 df_healthy$condition <- "Healthy"
@@ -64,8 +62,6 @@ df_cancer$combine <- 1:nrow(df_cancer)
 df_cancer$sample <- "Cancer"
 df_cancer$condition <- "Cancer"
 df_cancer$color <- "red"
-
-# merge the healthy and cancer data frames together and sorting the combined data.
 df_all = merge(df_cancer,df_healthy,by = c("chr", "start", "end"))
 df_all <- df_all[order(df_all$chr, df_all$start), ]
 
@@ -75,8 +71,6 @@ df_all$color <- ifelse(df_all$diff >= 1.5 | df_all$diff <= 2 / 3 , "green", "blu
 healthy_color = df_all$color
 cancer_color <- ifelse(healthy_color == "blue", "red", healthy_color)
 color = c(cancer_color,healthy_color)
-
-# bind the healthy and cancer data frames, setting the condition column as factor.
 df = rbind(df_cancer, df_healthy)
 df$condition <- factor(df$condition, levels = c("Cancer", "Healthy"))
 df$color = color
@@ -87,7 +81,6 @@ my_theme <- theme_classic()+theme(axis.text.y = element_text(color = "black", si
                                   strip.background = element_blank(),
                                   strip.placement = "outside")
 
-# A dashed gray line is added at the CNA value of 2 to enhance the visualization
 ggplot(df, aes(x = combine, y = average, group = sample, color = color)) + 
   geom_line(linewidth = 0.5) + 
   facet_grid(cols = vars(chr), rows = vars(condition), switch = "x", space = "free_x", scales = "free") + 
@@ -122,12 +115,8 @@ data <- data %>%
   mutate(combine = ceiling((1:length(chr)) / 50))
 data <- as.data.frame(data)
 data$value = as.numeric(data$value)
-
-# transform the data frame into long format. 
 data <- melt(data, id.vars=c("chr", "start", "end", "arm", "combine"), 
              measure.vars=colnames(data)[-c(1, 2, 3, (ncol(data)-1), ncol(data))], variable.name = "sample")
-
-# group and summarize the data by sample, chr, arm, and combine columns, retaining rows with a binsize of 50.
 rst <- data %>% 
   group_by(sample, chr, arm, combine) %>%
   summarize(start = dplyr::first(start),
@@ -143,8 +132,6 @@ meanValue <- as.data.frame(apply(meanValue, 2, FUN = rep, each = nrow(rst) / 11)
 meanValue$sample = as.factor(meanValue$sample)
 meanValue$meanRatio = as.numeric(meanValue$meanRatio)
 rst$centeredRatio <- rst$meanRatio - meanValue$meanRatio
-
-# establish the condition and color columns
 rst$condition <- c(rep("Healthy", 1042),rep("Cancer", 4689))
 rst$color <- c(rep("blue", 1042),rep("red", 4689)) ## The numbers 1042 and 4689 are the number of 5Mb regions of healthy and cancer samples in rst, respectively
 rst$condition <- factor(rst$condition, levels = c("Healthy", "Cancer"))
@@ -199,8 +186,6 @@ mean_cancer = mean(cancer_mds$MDS)
 sd_cancer = sd(cancer_mds$MDS)
 mean_healthy = mean(healthy_mds$MDS)
 sd_healthy = sd(healthy_mds$MDS)
-
-# merge the data from both healthy and cancer samples and rank the motifs based on their frequency
 FREQ = merge(df_cancer, df_healthy, by = c("motif"))
 FREQ$diff <- abs(FREQ$average_healthy - FREQ$average_cancer)
 FREQ$rank <- rank(-FREQ$diff)
@@ -283,8 +268,6 @@ for (name in matrix_names) {
     valid_matrices[[name]] <- matrix  
   }
 }
-
-# determine the dimensions of each correlation matrix and create an average matrix from them.
 n_rows <- nrow(valid_matrices[[1]])
 n_cols <- ncol(valid_matrices[[1]])
 average_matrix <- matrix(0, n_rows, n_cols)
@@ -382,8 +365,6 @@ df_over <- data.frame(
   group = factor(c(rep("Cancer", length(average_cancer_over)), rep("Healthy", length(average_healthy_over))))
 )
 df_over$group <- factor(df_over$group, levels = c("Cancer", "Healthy"))
-
-# perform a Wilcoxon test to compare the healthy and cancer samples and obtain the p-value.
 wilcox_test_result_under <- wilcox.test(value ~ group, data = df_under)
 p_value_under <- wilcox_test_result_under$p.value
 wilcox_test_result_over <- wilcox.test(value ~ group, data = df_over)
