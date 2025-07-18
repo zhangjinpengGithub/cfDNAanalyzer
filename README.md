@@ -587,7 +587,7 @@ sample4,0,1.180354,1.51295,0.361517,...
 ```
 
 ### Feature Visualization
-There is a script loacted at `/cfDNAanalyzer/Feature_visualization/Feature_visualization.R` for visualizing multiple features extracted by cfDNAanalyzer, comparing the similarity of various features, and identifying redundant features. <br>
+There is a script located at `/cfDNAanalyzer/Feature_visualization/Feature_visualization.R` for visualizing multiple features extracted by cfDNAanalyzer, comparing the similarity of various features, and identifying redundant features. <br>
 Visualization results for features can be found under the directory `/cfDNAanalyzer/Feature_visualization`.
 
 ### Feature Processing and Selection
@@ -711,7 +711,7 @@ sample5,1,concat,concat,filter_DR_0.2,KNN,0.4,0.5,0.1
 ```
 
 ### Composite Scoring System
-There is a script loacted at `/cfDNAanalyzer/Composite_scoring_system/Composite_scoring_system.R` for constructing a composite scoring system that integrates both performance and usability metrics to evaluate model performance in two-class or multi-class machine learning. <br>
+There is a script located at `/cfDNAanalyzer/Composite_scoring_system/Composite_scoring_system.R` for constructing a composite scoring system that integrates both performance and usability metrics to evaluate model performance in two-class or multi-class machine learning. The composite scoring system facilitates fair comparison between different features to further guide multi-feature integration. <br>
 Visualization of composite scoring system can be found under the directory `/cfDNAanalyzer/Composite_scoring_system`.
 
 ## Versions of packages in our environment
