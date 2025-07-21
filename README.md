@@ -149,7 +149,7 @@ bash Raw_data_processing.sh -i <InputFile> -o <OutputDirectory> -t <threads> [Op
 
 ### 2. Feature selection
 
-Feature selection is an important step in machine leanring. It involves removing irrelevant or redundant features based on importance rankings, which can help reduce model complexity and enhance the model's ability to make accurate predictions. Here we provide **four methods (filter, embedded, wrapper, and hybrid methods)** for feature selection ( [<ins>Pudjihartono *et al, Front. Bioinform.*, 2022</ins>](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9580915/)), as follows:
+Feature selection is an important step in machine learning. It involves removing irrelevant or redundant features based on importance rankings, which can help reduce model complexity and enhance the model's ability to make accurate predictions. Here we provide **four methods (filter, embedded, wrapper, and hybrid methods)** for feature selection ( [<ins>Pudjihartono *et al, Front. Bioinform.*, 2022</ins>](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9580915/)), as follows:
 
 #### 2.1 Filter methods
 
@@ -293,7 +293,7 @@ bash cfDNAanalyzer.sh -I <InputFile> -o <OutputDirectory> -F <Features> [Options
   -T     FILE   A TAB-delimited TSS information file without any header.
                 The file must have six columns: (1) chromosome, (2) 1-base TSS coordinate, (3) gene name, (4) strand (+1/-1) and (5) TSS ID (e.g., for genes with multiple TSS, this could be geneName_1, geneName_2, etc.)
                 If not provided, TSSs (cfDNAanalyzer/Epic-seq/code/priordata/sample_hg19.txt or cfDNAanalyzer/Epic-seq/code/priordata/sample_hg38.txt) from the original Promoter Fragmentation Entropy paper will be used.
-  --PFE  STR    Addtional parameter setting for PFE analysis. 
+  --PFE  STR    Additional parameter setting for PFE analysis. 
                 The full parameter list is available by running: Rscript cfDNAanalyzer/Epic-seq/code/runEPIC.R -h.[optional]
 
 ----- Options for TSS Coverage (TSSC) -----
@@ -302,9 +302,9 @@ bash cfDNAanalyzer.sh -I <InputFile> -o <OutputDirectory> -F <Features> [Options
   -S                    FILE  A BED6 file specifying the coordinates of TSSs used for calculating TSSC. 
                               If not provided, all TSSs of refSeq genes will be used.
   -n                    STR   Methods to normalize the number of reads per bin for the "bamCoverage" command of deeptools (RPKM,CPM,BPM,RPGC) . Default: [RPKM]
-  --bamCoverage         STR   Additional parameter seting for the "bamCoverage" command of deeptools.
+  --bamCoverage         STR   Additional parameter setting for the "bamCoverage" command of deeptools.
                               The full parameter list is available by running: bamCoverage -h. [optional] 
-  --multiBigwigSummary  STR   Additional parameter seting for the "multiBigwigSummary" command of deeptools.
+  --multiBigwigSummary  STR   Additional parameter setting for the "multiBigwigSummary" command of deeptools.
                               The full parameter list is available by running: multiBigwigSummary -h.[optional].
                           
 
@@ -312,7 +312,7 @@ bash cfDNAanalyzer.sh -I <InputFile> -o <OutputDirectory> -F <Features> [Options
   --noDA                LOGIC  Skip all the downstream analysis.
   --noML                LOGIC  Skip machine learning model building, only feature processing and selection will be conducted.
                                Methods in feature selection will leverage the label information of all samples.
-  --labelFile           FILE   Label information file for all the samples, seperated by comma.
+  --labelFile           FILE   Label information file for all the samples, separated by comma.
                                This file must have two columns. The sample column contains the basename of all the samples. The label column contains all the samples' label information (like 0,1 for two class and 0,1,2 for three class).
 
 ----- Options for feature processing and selection -----
@@ -405,9 +405,9 @@ bash cfDNAanalyzer.sh -I ./example/bam_input.txt -F CNA,OCF -g hg19 -b ./example
 │   ├── Feature_Processing
 │   │   └── [FeatureName].csv
 │   └── Feature_Selection
-│       ├── [FeatureName]_[embeddedMethod]_selectd.csv
-│       ├── [FeatureName]_[filterMethod]_selectd.csv
-│       └── [FeatureName]_[wrapperMethod]_selectd.csv
+│       ├── [FeatureName]_[embeddedMethod]_selected.csv
+│       ├── [FeatureName]_[filterMethod]_selected.csv
+│       └── [FeatureName]_[wrapperMethod]_selected.csv
 └── Machine_Learning
     ├── single_modality
     │   ├── [FeatureName1]
@@ -470,7 +470,7 @@ sample4,0,0.131223,0.180202,0.200336,...
 ```
 
 #### Nucleosome Occupancy and Fuzziness (NOF)
-In ```NOF_meanfuziness.csv``` and ```NOF_occupancy.csv```, columns after `label` contain average fuzziness value (```NOF_meanfuziness.csv```) or occupany value (```NOF_occupancy.csv```) for each region. Column name `[chr]_[chrStart]_[chrEnd]` of these columns specifies the chromosome, start coordinate and end coordinate for each region.
+In ```NOF_meanfuziness.csv``` and ```NOF_occupancy.csv```, columns after `label` contain average fuzziness value (```NOF_meanfuziness.csv```) or occupancy value (```NOF_occupancy.csv```) for each region. Column name `[chr]_[chrStart]_[chrEnd]` of these columns specifies the chromosome, start coordinate and end coordinate for each region.
 ```r
 sample,label,chr10_100026951_100028952,chr10_100154064_100156065,chr10_100173939_100175940,...
 sample1,1,5.10545,15.2444,13.1614,...
@@ -607,7 +607,7 @@ sample4,0,-0.85468,-0.255078,-0.54376,...
 
 #### Feature selection
 
-In`[FeatureName]_[embeddedMethod]_selectd.csv`,`[FeatureName]_[filterMethod]_selectd.csv` and `[FeatureName]_[wrapperMethod]_selectd.csv`, columns after `label` contain **selected** feature data for each sample.
+In`[FeatureName]_[embeddedMethod]_selected.csv`,`[FeatureName]_[filterMethod]_selected.csv` and `[FeatureName]_[wrapperMethod]_selected.csv`, columns after `label` contain **selected** feature data for each sample.
 
 ```r
 sample,label,feature1,feature2,feature3,...
