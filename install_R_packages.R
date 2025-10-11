@@ -47,6 +47,7 @@ bioconductor_packages <- c(
   "Rsamtools",
   "GenomicAlignments",
   "biovizBase",
+  "rtracklayer",
   "BSgenome.Hsapiens.UCSC.hg19",
   "BSgenome.Hsapiens.UCSC.hg38"
 )
