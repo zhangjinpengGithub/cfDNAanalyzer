@@ -49,15 +49,18 @@ For detailed guidance on feature visualization, feature selection optimization, 
 
 ## Description
 ### Environment requirement and installation
-Please ensure [<ins>samtools (v1.3.1)</ins>](https://github.com/samtools/samtools), [<ins>bedtools (v2.29.2)</ins>](https://bedtools.readthedocs.io/en/latest/index.html), and [<ins>deeptools (3.5.1)</ins>](https://github.com/deeptools/deepTools) are in your environment. Then, you can install the toolkit following the steps below ( R(>= 4.2.0) is required ):
+Please ensure [<ins>samtools (v1.6)</ins>](https://github.com/samtools/samtools), [<ins>bedtools (v2.27.1)</ins>](https://bedtools.readthedocs.io/en/latest/index.html), and [<ins>deeptools (3.5.1)</ins>](https://github.com/deeptools/deepTools) are in your environment. Then, you can install the toolkit following the steps below ( R(>= 4.3.0), perl(>= v5.34.0) is required ):
 ```ruby
 git clone https://github.com/LiymLab/cfDNAanalyzer.git
 chmod a+x -R ./cfDNAanalyzer
 cd cfDNAanalyzer/
-conda env create -f environment.yml
+conda create -n cfDNAanalyzer python=3.7.16 parallel jq
 conda activate cfDNAanalyzer
 Rscript install_R_packages.R
+pip install -r requirements.txt
 ```
+If you find some packages are missing, you can refer the **Versions of packages in our environment** part for the version information.
+<br>
 
 ### Raw data processing (optional)
 The input file format for cfDNAanalyzer is BAM. You can generate BAM files from raw sequencing data (FASTQ) using your own pipeline or our built-in script, `Raw_data_processing.sh`, located in the `/cfDNAanalyzer` directory. <br>
@@ -369,7 +372,7 @@ bash cfDNAanalyzer.sh -I <InputFile> -o <OutputDirectory> -F <Features> [Options
 You can directly run cfDNAanalyzer by ```cfDNAanalyzer.sh``` provided in the ```cfDNAanalyzer/``` directory with the example files available at Zenodo (DOI: ([<ins>10.5281/zenodo.15295045</ins>](https://doi.org/10.5281/zenodo.13369741))).  
 
 ```ruby
-bash cfDNAanalyzer.sh -I ./example/bam_input.txt -F CNA,OCF -g hg19 -b ./example/test.bed -f ./example/example.fa --labelFile ./example/label.txt --filterMethod 'CHI' --wrapperMethod 'BOR' --embeddedMethod 'LASSO' --classNum 2 --cvSingle LOO --classifierSingle 'KNN' --cvMulti LOO --classifierMulti 'KNN' > ./cfDNAanalyzer.log
+bash cfDNAanalyzer.sh -I ./example/bam_input.txt -F EM,OCF -g hg19 -b ./example/test.bed -f ./example/example.fa --labelFile ./example/label.txt --filterMethod 'CHI' --wrapperMethod 'BOR' --embeddedMethod 'LASSO' --classNum 2 --cvSingle LOO --classifierSingle 'KNN' --cvMulti LOO --classifierMulti 'KNN' > ./cfDNAanalyzer.log
 ```
 
 ## Output files
@@ -860,7 +863,7 @@ pyOpenSSL                      23.0.0
 pyparsing                      3.0.9
 PyQt5-sip                      12.11.0
 pyrsistent                     0.18.0
-pysam                          0.16.0
+pysam                          0.17.0
 PySocks                        1.7.1
 pytest                         7.4.4
 python-dateutil                2.8.2
