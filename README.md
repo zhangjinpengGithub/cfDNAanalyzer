@@ -956,6 +956,7 @@ GenomicRanges                  1.54.1
 Rsamtools                      2.18.0
 GenomicAlignments              1.38.2
 biovizBase                     1.50.0
+rtracklayer                    1.62.0
 BSgenome.Hsapiens.UCSC.hg19    1.4.3
 BSgenome.Hsapiens.UCSC.hg38    1.4.5
 ```
