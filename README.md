@@ -49,7 +49,7 @@ For detailed guidance on feature visualization, feature selection optimization, 
 
 ## Description
 ### Environment requirement and installation
-Please ensure [<ins>samtools (v1.6)</ins>](https://github.com/samtools/samtools), [<ins>bedtools (v2.27.1)</ins>](https://bedtools.readthedocs.io/en/latest/index.html), and [<ins>deeptools (3.5.1)</ins>](https://github.com/deeptools/deepTools) are in your environment. Then, you can install the toolkit following the steps below ( R(>= 4.3.0), perl(>= v5.34.0) is required ):
+Please ensure [<ins>samtools (v1.6)</ins>](https://github.com/samtools/samtools), [<ins>bedtools (v2.27.1)</ins>](https://bedtools.readthedocs.io/en/latest/index.html), and [<ins>deeptools (3.5.1)</ins>](https://github.com/deeptools/deepTools) are in your environment. Then, you can install the toolkit following the steps below ( R(>= 4.3.0), perl(>= v5.34.0), GLIBC(>= 2.34) is required ):
 ```ruby
 git clone https://github.com/LiymLab/cfDNAanalyzer.git
 chmod a+x -R ./cfDNAanalyzer
@@ -59,7 +59,10 @@ conda activate cfDNAanalyzer
 Rscript install_R_packages.R
 pip install -r requirements.txt
 ```
-If you find some packages are missing, you can refer the **Versions of packages in our environment** part for the version information.
+**Note:**<br>
+* If you find some packages are missing, you can refer the **Versions of packages in our environment** part for the version information.<br>
+* If you want to extract feature NOF, you must have shared object file **libR.so** in you R library.
+
 <br>
 
 ### Raw data processing (optional)
@@ -956,7 +959,6 @@ GenomicRanges                  1.54.1
 Rsamtools                      2.18.0
 GenomicAlignments              1.38.2
 biovizBase                     1.50.0
-rtracklayer                    1.62.0
 BSgenome.Hsapiens.UCSC.hg19    1.4.3
 BSgenome.Hsapiens.UCSC.hg38    1.4.5
 ```
