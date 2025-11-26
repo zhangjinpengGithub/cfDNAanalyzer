@@ -621,6 +621,10 @@ sample3,0,1.220205,1.239343,2.053586,...
 sample4,0,1.180354,1.51295,0.361517,...
 ```
 
+#### mtcfDNA
+The output file of mitochondrial cfDNA features is similar to the corresponding output file of features mentioned above.
+
+
 ### Feature visualization
 There is a script located at `/cfDNAanalyzer/Feature_visualization/Feature_visualization.R` for visualizing multiple features extracted by cfDNAanalyzer, comparing the similarity of various features, and identifying redundant features. <br>
 
