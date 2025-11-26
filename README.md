@@ -273,20 +273,20 @@ bash cfDNAanalyzer.sh -I <InputFile> -o <OutputDirectory> -F <Features> [Options
 -------------------- Options for feature extraction --------------------
 
 -----General options -----
-  -I   FILE      A text file containing all input BAM files with one BAM file per line. 
+  -I   FILE     A text file containing all input BAM files with one BAM file per line. 
                 BAM files generated using both Bowtie2 and BWA are accepted.  
-  -o   DIR       Output directory for all the results. Default: [./]
-  -F   STR       Features to extract, including CNA, NOF, WPS, EM, EMR, FP, FPR, NP, OCF, PFE, and TSSC.
+  -o   DIR      Output directory for all the results. Default: [./]
+  -F   STR      Features to extract, including CNA, NOF, WPS, EM, EMR, FP, FPR, NP, OCF, PFE, and TSSC.
                 Features should be set as a string separated by comma, e.g., CNA,NOF. 
                 Default: All available features will be extracted.
                 The detailed description of each feature can be accessed at https://github.com/LiymLab/cfDNAanalyzer. 
                 Note: The following features are specifically designed for paired-end sequencing data: FP, FPR, EM, EMR, NP, PFE, and OCF.
-  -g   STR       Genome version of input BAM files (hg19/hg38). Default: [hg38] 
-  -b   FILE      A BED3 file specifying the regions to extract features.
+  -g   STR      Genome version of input BAM files (hg19/hg38). Default: [hg38] 
+  -b   FILE     A BED3 file specifying the regions to extract features.
                 The file should contain three TAB-delimited columns: chromosome start end.
   -s   STR       Sequencing method of input BAM files (single/pair). Default: [pair]
-  -t   INT       Number of threads to use. Default: [1]   
-  --mt LOGIC    Only output the features of mitochondrial cfDNA. Default: [FALSE]
+  -t   INT      Number of threads to use. Default: [1]   
+  --mt LOGIC    Only extract the features of mitochondrial cfDNA. Default: [FALSE]
 
 ----- Options specific for Copy Number Alterations (CNA) -----
   -B     INT    Bin size in kilobases (10, 50, 500, or 1000). Default: [1000]
@@ -426,16 +426,7 @@ bash cfDNAanalyzer.sh -I ./example/bam_input.txt -F EM,OCF -g hg19 -b ./example/
 │   ├── EMR_region_mds.csv
 │   ├── FPR_fragmentation_profile_regions.csv
 │   ├── PFE.csv
-│   ├── TSSC_average_coverage.csv
-│   └── mtcfDNA
-│       ├── NOF_meanfuziness.csv
-│       ├── NOF_occupancy.csv
-│       ├── WPS_long.csv
-│       ├── WPS_short.csv
-│       ├── OCF.csv
-│       ├── EMR_region_motif_frequency.csv
-│       ├── EMR_region_mds.csv
-│       └── TSSC_average_coverage.csv
+│   └── TSSC_average_coverage.csv
 ├── Feature_Processing_and_Selection
 │   ├── Feature_Processing
 │   │   └── [FeatureName].csv
@@ -620,10 +611,6 @@ sample2,1,1.406582,1.938656,1.691248,...
 sample3,0,1.220205,1.239343,2.053586,...
 sample4,0,1.180354,1.51295,0.361517,...
 ```
-
-#### mtcfDNA
-The output file of mitochondrial cfDNA features is similar to the corresponding output file of features mentioned above.
-
 
 ### Feature visualization
 There is a script located at `/cfDNAanalyzer/Feature_visualization/Feature_visualization.R` for visualizing multiple features extracted by cfDNAanalyzer, comparing the similarity of various features, and identifying redundant features. <br>
