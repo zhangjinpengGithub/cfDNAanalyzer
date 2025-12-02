@@ -49,15 +49,21 @@ For detailed guidance on feature visualization, feature selection optimization, 
 
 ## Description
 ### Environment requirement and installation
-Please ensure [<ins>samtools (v1.3.1)</ins>](https://github.com/samtools/samtools), [<ins>bedtools (v2.29.2)</ins>](https://bedtools.readthedocs.io/en/latest/index.html), and [<ins>deeptools (3.5.1)</ins>](https://github.com/deeptools/deepTools) are in your environment. Then, you can install the toolkit following the steps below ( R(>= 4.2.0) is required ):
+Please ensure [<ins>samtools (v1.6)</ins>](https://github.com/samtools/samtools), [<ins>bedtools (v2.27.1)</ins>](https://bedtools.readthedocs.io/en/latest/index.html), and [<ins>deeptools (3.5.1)</ins>](https://github.com/deeptools/deepTools) are in your environment. Then, you can install the toolkit following the steps below ( R(>= 4.3.0), perl(>= v5.34.0), GLIBC(>= 2.34) is required ):
 ```ruby
 git clone https://github.com/LiymLab/cfDNAanalyzer.git
 chmod a+x -R ./cfDNAanalyzer
 cd cfDNAanalyzer/
-conda env create -f environment.yml
+conda create -n cfDNAanalyzer python=3.7.16 parallel jq
 conda activate cfDNAanalyzer
 Rscript install_R_packages.R
+pip install -r requirements.txt
 ```
+**Note:**<br>
+* If you find some packages are missing, you can refer the **Versions of packages in our environment** part for the version information.<br>
+* If you want to extract feature NOF, you must have shared object file **libR.so** in you R library.
+
+<br>
 
 ### Raw data processing (optional)
 The input file format for cfDNAanalyzer is BAM. You can generate BAM files from raw sequencing data (FASTQ) using your own pipeline or our built-in script, `Raw_data_processing.sh`, located in the `/cfDNAanalyzer` directory. <br>
@@ -95,39 +101,58 @@ bash Raw_data_processing.sh -i <InputFile> -o <OutputDirectory> -t <threads> [Op
   -Q  INT       only include reads with mapping quality >= INT. Default: [20].
 ```
 
-### Supported features
+### Supported features and feature extraction
 ### 1.  Genome-wide features:
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.1  <ins>C</ins>opy <ins>N</ins>umber <ins>A</ins>lterations (CNA) ([<ins>Adalsteinsson *et al, Nat. Commun.*, 2017</ins>](https://www.nature.com/articles/s41467-017-00965-y))<br>
 * Copy number alterations comprise deletions or amplifications of a particular region of the genome, with a size as low as a few kilobases up to entire chromosomes. 
+* Copy number alterations were computed using ichorCNA which was incorporated in cfDNAanalyzer without modifications. CNA processing includes a mandatory LOESS-based GC content and mappability bias correction step. Bin size is user-configurable to accommodate varying sequencing depths, following HMMCopy's recommendation of selecting a bin width that ensures at least 200 reads per bin—for instance, ~1000 bp for 30x coverage or ~500,000 bp for single-cell sequencing (0.05x). Further details are available in the HMMCopy utilities repository: https://github.com/shahcompbio/hmmcopy_utils.
+
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.2  <ins>E</ins>nd <ins>M</ins>otif frequency and diversity (EM) ([<ins>Lee *et al, PNAS*, 2018</ins>](https://www.pnas.org/doi/abs/10.1073/pnas.1815031116) ; [<ins>Jiang *et al, Cancer Discov.*, 2020</ins>](https://doi.org/10.1158/2159-8290.CD-19-0622))
 * End motifs are the terminal n-nucleotide sequence (4-mer end motif in this toolkit) at each 5′ fragment end of cfDNA molecules. End motif frequency refers to the frequency of all 256 4-mer end motifs.<br>
 * End motif diversity is the normalized Shannon entropy of the categorical distribution of all possible 4-mer end-motifs of all cfDNA fragments.
+*	End motif frequency and diversity were calculated using a custom motif-extraction script by exactly following the definitions in the original studies.
+
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.3  <ins>F</ins>ragmentation <ins>P</ins>rofile (FP) ([<ins>Cristiano *et al, Nature*, 2019</ins>](https://doi.org/10.1038/s41586-019-1272-6))
-* Fragmentation profile describes fragmentation patterns of cfDNA across the genome, which is the fraction of short cfDNA fragments (100–150 bp) to long cfDNA fragments (151–220 bp) for each 5Mb window across the genome.
+* Fragmentation profile describes fragmentation patterns of cfDNA across the genome, which is the fraction of short cfDNA fragments (100–150 bp) to long cfDNA fragments (151–220 bp) for each 100kb window across the genome.
+* Fragmentation profiles were implemented using the original source code, with extension to support both hg19 and hg38 genomes. 
 
 ### 2.  Region-specific features: 
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1  <ins>N</ins>ucleosome <ins>O</ins>ccupancy and <ins>F</ins>uzziness (NOF) ([<ins>Li *et al, Genome Med.*, 2024</ins>](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-023-01280-6))
 * Nucleosome occupancy reflects the frequency with which nucleosomes occupy a given genomic region in a cell population. Nucleosome occupancy for a specific region is calculated as the average occupancy values of all based in this region.<br>
 * Nucleosome fuzziness is defined as the deviation of nucleosome positions within a region in a cell population and could reflect cell heterogeneity at the chromatin level. Nucleosome fuzziness for a specific region is calculated as the average fuzziness of all the nucleosomes whose center is located within the region.<br>
+*	Nucleosome occupancy and fuzziness was directly implemented using the original source code in its published study without modifications.
+
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.2 <ins>N</ins>ucleosome <ins>P</ins>rofile (NP) ([<ins>Doebley *et al, Nat. Commun.*, 2022</ins>](https://www.nature.com/articles/s41467-022-35076-w))
 * Nucleosome profile is a composite coverage profile computed as the mean of the GC-corrected cfDNA fragment midpoint coverage across a set of sites (Binding sites sets of 377 transcription factors as the dafalut). For each set of sites, three features are identified from the composite coverage profile:
    * (1) The average coverage value from ± 30 bp of the central site of each set (central coverage).
    * (2) The average coverage value from ± 1000 bp of the central site of each set (mean coverage).
    * (3) The overall nucleosome peak amplitude is calculated by using a Fast Fourier Transform on the window ± 960 bp from the site and taking the amplitude of the 10th frequency term (amplitude).
+* Nucleosome profile were implemented using the original source code, with extension to support both hg19- and hg38-based site list.
+
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.3  <ins>W</ins>indowed <ins>P</ins>rotection <ins>S</ins>core (WPS) ([<ins>Snyder *et al, Cell*, 2016</ins>](https://doi.org/10.1016/j.cell.2015.11.050))
 * Windowed protection score is the number of DNA fragments completely spanning a window centered at a given genomic coordinate minus the number of fragments with an endpoint within that same window. WPS can be calculated using long fragments (120–180 bp; 120 bp window) or short fragments (35–80 bp; 16 bp window). The WPS for a specific region is defined as the average WPS of all bases in this region. High WPS values indicate increased protection of DNA from digestion while low values indicate that DNA is unprotected.
+* Windowed protection score was implemented using the original source code, transforming the single-base level calculation to output a region-level WPS for easier downstream interpretation.
+
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.4  <ins>O</ins>rientation-aware <ins>C</ins>fDNA <ins>F</ins>ragmentation (OCF) ([<ins>Sun *et al, Genome Res.*, 2019</ins>](https://genome.cshlp.org/content/29/3/418.long))
 * Orientation-aware cfDNA fragmentation is the differences of read densities of the upstream and downstream fragment ends in specific genomic regions.
+* Orientation-aware cfDNA fragmentation retains the original source code, but generalized to enable computation on any user-defined regions through a shell-based workflow.
+
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.5  <ins>E</ins>nd <ins>M</ins>otif frequency and diversity for <ins>R</ins>egions (EMR) ([<ins>Serpas *et al, PNAS*, 2018</ins>](https://www.pnas.org/doi/abs/10.1073/pnas.1815031116) ; [<ins>Jiang *et al, Cancer Discov.*, 2020</ins>](https://doi.org/10.1158/2159-8290.CD-19-0622))
 * We introduced end motif frequency and diversity for regions, which is defined as the frequency and diversity of all 256 4-mer end motifs for each region.<br>
+* End motif frequency and diversity for Regions (EMR)12,13 were calculated using a custom motif-extraction script, adhering to the original study definitions for each user-specified region.
+
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.6  <ins>F</ins>ragmentation <ins>P</ins>rofile for <ins>R</ins>egions (FPR) ([<ins>Cristiano *et al, Nature*, 2019</ins>](https://doi.org/10.1038/s41586-019-1272-6))
 * We introduced fragmentation profile for regions, which is defined as the fraction of short cfDNA fragments (100–150 bp) to long cfDNA fragments (151–220 bp) for each region.
+*	Fragmentation profiles for regions adapt the FP strategy to user-defined genomic intervals.
 
 ### 3.  TSS-based features: 
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1 <ins>P</ins>romoter <ins>F</ins>ragmentation <ins>E</ins>ntropy (PFE) ([<ins>Esfahani *et al, Nat. Biotechnol.*, 2022</ins>](https://doi.org/10.1038/s41587-022-01222-4))<br>
 * Promoter fragmentation entropy quantifies the diversity of cfDNA fragment lengths around the TSSs of genes. It is calculated by a modified Shannon index for lengths of cfDNA fragment where both ends fell within ±1 kb of the TSS. Then this cfDNA entropy measure is adjusted using a Dirichlet-multinomial model for normalization. Finally, we Z-score this entropy value for genes in every sample.
+* Promoter fragmentation entropy was implemented using the original source code in its published study without modifications. 
+
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.2 <ins>TSS</ins> <ins>C</ins>overage (TSSC) ([<ins>Ulz *et al, Nat. Genet.*, 2016</ins>](https://www.nature.com/articles/ng.3648))
 * TSS coverage refers to the cfDNA sequencing read coverage in the regions surrounding TSSs.
+* TSS coverage was calculated using a custom workflow that integrates deepTools commands to quantify read coverage across promoter regions.
 
 ### Supported feature processing methods and machine learning models
 
@@ -248,19 +273,20 @@ bash cfDNAanalyzer.sh -I <InputFile> -o <OutputDirectory> -F <Features> [Options
 -------------------- Options for feature extraction --------------------
 
 -----General options -----
-  -I  FILE      A text file containing all input BAM files with one BAM file per line. 
+  -I   FILE     A text file containing all input BAM files with one BAM file per line. 
                 BAM files generated using both Bowtie2 and BWA are accepted.  
-  -o  DIR       Output directory for all the results. Default: [./]
-  -F  STR       Features to extract, including CNA, NOF, WPS, EM, EMR, FP, FPR, NP, OCF, PFE, and TSSC.
+  -o   DIR      Output directory for all the results. Default: [./]
+  -F   STR      Features to extract, including CNA, NOF, WPS, EM, EMR, FP, FPR, NP, OCF, PFE, and TSSC.
                 Features should be set as a string separated by comma, e.g., CNA,NOF. 
                 Default: All available features will be extracted.
                 The detailed description of each feature can be accessed at https://github.com/LiymLab/cfDNAanalyzer. 
                 Note: The following features are specifically designed for paired-end sequencing data: FP, FPR, EM, EMR, NP, PFE, and OCF.
-  -g  STR       Genome version of input BAM files (hg19/hg38). Default: [hg38] 
-  -b  FILE      A BED3 file specifying the regions to extract features.
+  -g   STR      Genome version of input BAM files (hg19/hg38). Default: [hg38] 
+  -b   FILE     A BED3 file specifying the regions to extract features.
                 The file should contain three TAB-delimited columns: chromosome start end.
-  -s  STR       Sequencing method of input BAM files (single/pair). Default: [pair]
-  -t  INT       Number of threads to use. Default: [1]              
+  -s   STR       Sequencing method of input BAM files (single/pair). Default: [pair]
+  -t   INT      Number of threads to use. Default: [1]   
+  --mt LOGIC    Only extract the features of mitochondrial cfDNA. Default: [FALSE]
 
 ----- Options specific for Copy Number Alterations (CNA) -----
   -B     INT    Bin size in kilobases (10, 50, 500, or 1000). Default: [1000]
@@ -369,7 +395,7 @@ bash cfDNAanalyzer.sh -I <InputFile> -o <OutputDirectory> -F <Features> [Options
 You can directly run cfDNAanalyzer by ```cfDNAanalyzer.sh``` provided in the ```cfDNAanalyzer/``` directory with the example files available at Zenodo (DOI: ([<ins>10.5281/zenodo.15295045</ins>](https://doi.org/10.5281/zenodo.13369741))).  
 
 ```ruby
-bash cfDNAanalyzer.sh -I ./example/bam_input.txt -F CNA,OCF -g hg19 -b ./example/test.bed -f ./example/example.fa --labelFile ./example/label.txt --filterMethod 'CHI' --wrapperMethod 'BOR' --embeddedMethod 'LASSO' --classNum 2 --cvSingle LOO --classifierSingle 'KNN' --cvMulti LOO --classifierMulti 'KNN' > ./cfDNAanalyzer.log
+bash cfDNAanalyzer.sh -I ./example/bam_input.txt -F EM,OCF -g hg19 -b ./example/test.bed -f ./example/example.fa --labelFile ./example/label.txt --filterMethod 'CHI' --wrapperMethod 'BOR' --embeddedMethod 'LASSO' --classNum 2 --cvSingle LOO --classifierSingle 'KNN' --cvMulti LOO --classifierMulti 'KNN' > ./cfDNAanalyzer.log
 ```
 
 ## Output files
@@ -860,7 +886,7 @@ pyOpenSSL                      23.0.0
 pyparsing                      3.0.9
 PyQt5-sip                      12.11.0
 pyrsistent                     0.18.0
-pysam                          0.16.0
+pysam                          0.17.0
 PySocks                        1.7.1
 pytest                         7.4.4
 python-dateutil                2.8.2
