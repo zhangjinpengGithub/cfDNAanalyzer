@@ -167,6 +167,8 @@ addNOF=""  # --NOF
 addbamCoverage=""  # --bamCoverage
 addmultiBigwigSummary=""  # --multiBigwigSummary
 addEpicSeq=""   # --PFE
+PFEdepth="500"
+mt=0
 
 # downstream analysis
 noDA=0
@@ -196,7 +198,7 @@ transMethod=pca
 
 # Use getopt to handle long options
 TEMP=$(getopt -o hI:o:F:g:f:s:b:t:B:u:d:S:x:X:w:m:M:W:l:T:n: \
-               --long help,CNA:,NOF:,bamCoverage:,multiBigwigSummary:,PFE:,noDA,noML,labelFile:,standardM:,filterMethod:,filterNum:,wrapperMethod:,wrapperNum:,embeddedMethod:,embeddedNum:,hybridType:,hybridMethod1:,hybridMethod2:,hybridNum1:,hybridNum2:,classNum:,cvSingle:,nsplitSingle:,classifierSingle:,cvMulti:,nsplitMulti:,classifierMulti:,modelMethod:,transMethod: \
+               --long help,CNA:,NOF:,bamCoverage:,multiBigwigSummary:,PFE:,PFEdepth:,mt,noDA,noML,labelFile:,standardM:,filterMethod:,filterNum:,wrapperMethod:,wrapperNum:,embeddedMethod:,embeddedNum:,hybridType:,hybridMethod1:,hybridMethod2:,hybridNum1:,hybridNum2:,classNum:,cvSingle:,nsplitSingle:,classifierSingle:,cvMulti:,nsplitMulti:,classifierMulti:,modelMethod:,transMethod: \
                -- "$@")
 
 # Check whether getopt succeeded
@@ -238,6 +240,8 @@ while true; do
         --bamCoverage)            addbamCoverage=$2; shift 2;;
         --multiBigwigSummary)     addmultiBigwigSummary=$2; shift 2;;
         --PFE)                    addEpicSeq=$2; shift 2;;
+        --PFEdepth)               PFEdepth=$2; shift 2;;
+        --mt)                     mt=1; shift;;
         --noDA)                   noDA=1; shift;;
         --noML)                   noML=1; shift;;
         --labelFile)              labelFile=$2; shift 2;;
@@ -293,11 +297,11 @@ run_analysis() {
     exit 1
   fi
   
-  if [[ "$Feature" == *"NOF"* ]] || [[ "$Feature" == *"NP"* ]] || [[ "$Feature" == *"WPS"* ]] || [[ "$Feature" == *"OCF"* ]] || [[ "$Feature" == *"EMR"* ]] || [[ "$Feature" == *"FPR"* ]] && [ -z "$bedfiles" ]; then
-    echo "Error: A BED3 file specifying the regions (-b) is not provided."
-    exit 1
+  if { [[ "$Feature" == *"NOF"* ]] || [[ "$Feature" == *"NP"* ]] || [[ "$Feature" == *"WPS"* ]] || [[ "$Feature" == *"OCF"* ]] || [[ "$Feature" == *"EMR"* ]] || [[ "$Feature" == *"FPR"* ]]; } && [ -z "$bedfiles" ]; then
+      echo "Error: A BED3 file specifying the regions (-b) is not provided."
+      exit 1
   fi
-  
+
   # Convert relative paths to absolute paths
   inputBamList=$(realpath "$inputBamList")
   outputDir=$(realpath "$outputDir")
@@ -309,6 +313,11 @@ run_analysis() {
     bedfiles=$(realpath "$bedfiles")
   fi  
     
+  if [[ "$mt" == 1 ]];then
+    grep -E "^chrM|^chrMT" "$bedfiles" > "$outputDir"/chrM.bed
+    bedfiles="$outputDir"/chrM.bed
+  fi
+
   # Process each bam file
   for inputBam in $(cat "$inputBamList"); do
       if [ ! -f "$inputBam" ]; then
@@ -318,6 +327,10 @@ run_analysis() {
       
       start_time=$(date +%s)
       
+      filename=$(basename "$inputBam" .bam)
+      mkdir -p $outputDir/filter_bam
+      samtools view -b -@ $threads "$inputBam" -q 30 -F 1796 > $outputDir/filter_bam/${filename}.bam
+      inputBam="$outputDir/filter_bam/${filename}.bam"
       samtools index -@ $threads "$inputBam"
 
       local filename=$(basename "$inputBam" .bam)
@@ -424,28 +437,32 @@ generate_config() {
 calculate_cna() {
   local inputBam=$1
   local bam_output_dir=$2
-  echo '
-  *****Calculating CNA for file: '$inputBam'*****'
-  if [[ "$binsize" != "10" ]] && [[ "$binsize" != "50" ]] && [[ "$binsize" != "500" ]] && [[ "$binsize" != "1000" ]]; then
-    echo "Error: incorrect bin size."
-    exit 1
+  if [[ "$mt" == 1 ]];then
+    echo "chrM region is not supportd by feature CNA"
+  elif [[ "$mt" == 0 ]];then
+    echo '
+    *****Calculating CNA for file: '$inputBam'*****'
+    if [[ "$binsize" != "10" ]] && [[ "$binsize" != "50" ]] && [[ "$binsize" != "500" ]] && [[ "$binsize" != "1000" ]]; then
+      echo "Error: incorrect bin size."
+      exit 1
+    fi
+    mkdir -p $bam_output_dir/CNA
+    $script_dir/ichorCNA/hmmcopy_utils/bin/readCounter --window $((binsize * 1000)) --quality 20 --chromosome "chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY" $inputBam > $bam_output_dir/CNA/CNA.wig
+    if [[ "$genomeVer" == "hg19" ]];then
+      Rscript $script_dir/ichorCNA/ichorCNA/scripts/runIchorCNA.R --genomeBuild hg19 --WIG $bam_output_dir/CNA/CNA.wig --gcWig $script_dir/ichorCNA/ichorCNA/inst/extdata/gc_hg19_${binsize}kb.wig --mapWig $script_dir/ichorCNA/ichorCNA/inst/extdata/map_hg19_${binsize}kb.wig --centromere $script_dir/ichorCNA/ichorCNA/inst/extdata/GRCh37.p13_centromere_UCSC-gapTable.txt --outDir $bam_output_dir/CNA  $addCNA 
+    elif [[ "$genomeVer" == "hg38" ]];then
+      Rscript $script_dir/ichorCNA/ichorCNA/scripts/runIchorCNA.R --genomeBuild hg38 --WIG $bam_output_dir/CNA/CNA.wig --gcWig $script_dir/ichorCNA/ichorCNA/inst/extdata/gc_hg38_${binsize}kb.wig --mapWig $script_dir/ichorCNA/ichorCNA/inst/extdata/map_hg38_${binsize}kb.wig --centromere $script_dir/ichorCNA/ichorCNA/inst/extdata/GRCh38.GCA_000001405.2_centromere_acen.txt --outDir $bam_output_dir/CNA $addCNA
+    fi
+    cut -f1,2,3,4 $bam_output_dir/CNA/test.cna.seg > $bam_output_dir/CNA/CNA.txt
+    rm -r $bam_output_dir/CNA/test
+    rm $bam_output_dir/CNA/test.cna.seg
+    rm $bam_output_dir/CNA/test.correctedDepth.txt
+    rm $bam_output_dir/CNA/test.params.txt
+    rm $bam_output_dir/CNA/test.RData
+    rm $bam_output_dir/CNA/test.seg
+    rm $bam_output_dir/CNA/test.seg.txt
+    rm $bam_output_dir/CNA/CNA.wig
   fi
-  mkdir -p $bam_output_dir/CNA
-  $script_dir/ichorCNA/hmmcopy_utils/bin/readCounter --window $((binsize * 1000)) --quality 20 --chromosome "chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY" $inputBam > $bam_output_dir/CNA/CNA.wig
-  if [[ "$genomeVer" == "hg19" ]];then
-    Rscript $script_dir/ichorCNA/ichorCNA/scripts/runIchorCNA.R --genomeBuild hg19 --WIG $bam_output_dir/CNA/CNA.wig --gcWig $script_dir/ichorCNA/ichorCNA/inst/extdata/gc_hg19_${binsize}kb.wig --mapWig $script_dir/ichorCNA/ichorCNA/inst/extdata/map_hg19_${binsize}kb.wig --centromere $script_dir/ichorCNA/ichorCNA/inst/extdata/GRCh37.p13_centromere_UCSC-gapTable.txt --outDir $bam_output_dir/CNA  $addCNA 
-  elif [[ "$genomeVer" == "hg38" ]];then
-    Rscript $script_dir/ichorCNA/ichorCNA/scripts/runIchorCNA.R --genomeBuild hg38 --WIG $bam_output_dir/CNA/CNA.wig --gcWig $script_dir/ichorCNA/ichorCNA/inst/extdata/gc_hg38_${binsize}kb.wig --mapWig $script_dir/ichorCNA/ichorCNA/inst/extdata/map_hg38_${binsize}kb.wig --centromere $script_dir/ichorCNA/ichorCNA/inst/extdata/GRCh38.GCA_000001405.2_centromere_acen.txt --outDir $bam_output_dir/CNA $addCNA
-  fi
-  cut -f1,2,3,4 $bam_output_dir/CNA/test.cna.seg > $bam_output_dir/CNA/CNA.txt
-  rm -r $bam_output_dir/CNA/test
-  rm $bam_output_dir/CNA/test.cna.seg
-  rm $bam_output_dir/CNA/test.correctedDepth.txt
-  rm $bam_output_dir/CNA/test.params.txt
-  rm $bam_output_dir/CNA/test.RData
-  rm $bam_output_dir/CNA/test.seg
-  rm $bam_output_dir/CNA/test.seg.txt
-  rm $bam_output_dir/CNA/CNA.wig
 }
 
 # Calculate End motif frequency and diversity
@@ -459,7 +476,15 @@ calculate_em() {
   echo '
   *****Calculating EM for file: '$inputBam'*****'
   mkdir -p $bam_output_dir/EM
-  samtools sort -@ $threads -n -o $bam_output_dir/EM/sorted_by_name.bam $inputBam
+
+  if [[ "$mt" == 1 ]];then
+    samtools view -b $inputBam chrM > $bam_output_dir/EM/chrM.bam
+    inputBam=$bam_output_dir/EM/chrM.bam
+    samtools index -@ $threads $bam_output_dir/EM/chrM.bam
+  fi 
+
+  alignmentSieve -b $inputBam -o $bam_output_dir/EM/filter.bam -p $threads --minFragmentLength 50 --maxFragmentLength 600
+  samtools sort -@ $threads -n -o $bam_output_dir/EM/sorted_by_name.bam $bam_output_dir/EM/filter.bam
   bedtools bamtobed -bedpe -i $bam_output_dir/EM/sorted_by_name.bam > $bam_output_dir/EM/${filename}.bedpe
   awk ' BEGIN {OFS="\t"}
   {
@@ -480,22 +505,26 @@ calculate_em() {
 
 # Calculate Fragmentation Profile
 calculate_fp() {
-  if [[ "$sequencing" == "single" ]] ; then
-    echo "Error: Feature FP is specifically designed for paired-end sequencing data"
-    exit 1
+  if [[ "$mt" == 1 ]];then
+    echo "chrM region is not supportd by feature FP"
+  elif [[ "$mt" == 0 ]];then
+    if [[ "$sequencing" == "single" ]] ; then
+      echo "Error: Feature FP is specifically designed for paired-end sequencing data"
+      exit 1
+    fi
+    local inputBam=$1
+    local bam_output_dir=$2
+    echo '
+    *****Calculating FP for file: '$inputBam'*****'
+    mkdir -p $bam_output_dir/FP
+    if [[ "$genomeVer" == "hg19" ]];then
+      Rscript $script_dir/Fragmentation_profile/fragmentProfile_delfi.R -i=$inputBam -o=$bam_output_dir/FP/FragmentationProfile.txt $script_dir/Fragmentation_profile/hg19_100kb_WG.txt $genomeVer $script_dir
+    elif [[ "$genomeVer" == "hg38" ]];then
+      Rscript $script_dir/Fragmentation_profile/fragmentProfile_delfi.R -i=$inputBam -o=$bam_output_dir/FP/FragmentationProfile.txt $script_dir/Fragmentation_profile/hg38_100kb_WG.txt $genomeVer $script_dir
+    fi
+    cut -f1,2,3,6,7,8 $bam_output_dir/FP/FragmentationProfile.txt > $bam_output_dir/FP/Fragmentation_Profile.txt
+    rm $bam_output_dir/FP/FragmentationProfile.txt
   fi
-  local inputBam=$1
-  local bam_output_dir=$2
-  echo '
-  *****Calculating FP for file: '$inputBam'*****'
-  mkdir -p $bam_output_dir/FP
-  if [[ "$genomeVer" == "hg19" ]];then
-    Rscript $script_dir/Fragmentation_profile/fragmentProfile_delfi.R -i=$inputBam -o=$bam_output_dir/FP/FragmentationProfile.txt $script_dir/Fragmentation_profile/hg19_100kb_WG.txt $genomeVer $script_dir
-  elif [[ "$genomeVer" == "hg38" ]];then
-    Rscript $script_dir/Fragmentation_profile/fragmentProfile_delfi.R -i=$inputBam -o=$bam_output_dir/FP/FragmentationProfile.txt $script_dir/Fragmentation_profile/hg38_100kb_WG.txt $genomeVer $script_dir
-  fi
-  cut -f1,2,3,6,7,8 $bam_output_dir/FP/FragmentationProfile.txt > $bam_output_dir/FP/Fragmentation_Profile.txt
-  rm $bam_output_dir/FP/FragmentationProfile.txt
 }
 
 
@@ -525,100 +554,104 @@ calculate_nof() {
 
 # Calculate Nucleosome Profile
 calculate_np() {
-  if [[ "$sequencing" == "single" ]] ; then
-    echo "Error: Feature NP is specifically designed for paired-end sequencing data."
-    exit 1
-  fi
-  local inputBam=$1
-  local bam_output_dir=$2
-  echo '
-  *****Calculating NP for file: '$inputBam'*****'
-  mkdir -p $bam_output_dir/NP
-  # Defining path variables
-  griffin_path="$script_dir/Griffin"
-  if [[ "$genomeVer" == "hg19" ]];then
-    Ref_dir="$griffin_path/Ref_hg19"
-    if [[ -z "$sitespath" ]]; then
-      sitespath=$script_dir/Griffin/Ref_hg19/sites
+  if [[ "$mt" == 1 ]];then
+    echo "chrM region is not supportd by feature NP"
+  elif [[ "$mt" == 0 ]];then
+    if [[ "$sequencing" == "single" ]] ; then
+      echo "Error: Feature NP is specifically designed for paired-end sequencing data."
+      exit 1
     fi
-  elif [[ "$genomeVer" == "hg38" ]];then
-    Ref_dir="$griffin_path/Ref_hg38"
-    if [[ -z "$sitespath" ]]; then
-      sitespath=$script_dir/Griffin/Ref_hg38/sites
+    local inputBam=$1
+    local bam_output_dir=$2
+    echo '
+    *****Calculating NP for file: '$inputBam'*****'
+    mkdir -p $bam_output_dir/NP
+    # Defining path variables
+    griffin_path="$script_dir/Griffin"
+    if [[ "$genomeVer" == "hg19" ]];then
+      Ref_dir="$griffin_path/Ref_hg19"
+      if [[ -z "$sitespath" ]]; then
+        sitespath=$script_dir/Griffin/Ref_hg19/sites
+      fi
+    elif [[ "$genomeVer" == "hg38" ]];then
+      Ref_dir="$griffin_path/Ref_hg38"
+      if [[ -z "$sitespath" ]]; then
+        sitespath=$script_dir/Griffin/Ref_hg38/sites
+      fi
     fi
-  fi
 
-  result_dir="$griffin_path/snakemakes"
-  gc_correction_dir="$result_dir/griffin_GC_and_mappability_correction"
-  nucleosome_profiling_dir="$result_dir/griffin_nucleosome_profiling"
-        
-  # Preparing for GC and mappability corrections
-  sed -e "s!Griffin_path!$griffin_path!g" -e "s!reference_path!$fasta!g" -e "s!Ref_dir!$Ref_dir!g" \
-      -e "s!result_name!$gc_correction_dir/result_${filename}!g" "$gc_correction_dir/config/config.yaml" \
-      > "$gc_correction_dir/config/config_${filename}.yaml"
-        
-  sed "s!input!$inputBam!g" "$gc_correction_dir/config/samples.yaml" \
-      > "$gc_correction_dir/config/samples_${filename}.yaml"
-        
-  sed -e "s!config_samples!$gc_correction_dir/config/samples_${filename}.yaml!g" \
-      -e "s!config_config!$gc_correction_dir/config/config_${filename}.yaml!g" \
-      -e "s!config_cluster!$gc_correction_dir/config/cluster_slurm.yaml!g" \
-      "$gc_correction_dir/griffin_GC_and_mappability_correction.snakefile" \
-      > "$gc_correction_dir/griffin_GC_and_mappability_correction_${filename}.snakefile"
-        
-  snakemake -s "$gc_correction_dir/griffin_GC_and_mappability_correction_${filename}.snakefile" --cores $threads
-        
-  rm "$gc_correction_dir/config/config_${filename}.yaml" "$gc_correction_dir/config/samples_${filename}.yaml"
-  rm "$gc_correction_dir/griffin_GC_and_mappability_correction_${filename}.snakefile"
-  mv "$gc_correction_dir/result_${filename}/samples.GC.yaml" "$nucleosome_profiling_dir/config/samples.GC_${filename}.yaml"
-        
-  # Nucleosome profiling analysis
-  sed -e "s!Griffin_path!$griffin_path!g" -e "s!reference_path!$fasta!g" -e "s!Ref_dir!$Ref_dir!g" \
-      -e "s!result_name!$nucleosome_profiling_dir/result_${filename}!g" \
-      -e "s!tmp_name!$nucleosome_profiling_dir/tmp_${filename}!g" \
-      -e "s!config_cluster!$nucleosome_profiling_dir/config/cluster_slurm.yaml!g" \
-      -e "s!config_sites!$nucleosome_profiling_dir/config/sites_${filename}.yaml!g" \
-      -e "s!config_samples.GC!$nucleosome_profiling_dir/config/samples.GC_${filename}.yaml!g" \
-      "$nucleosome_profiling_dir/config/config.yaml" \
-      > "$nucleosome_profiling_dir/config/config_${filename}.yaml"
-        
-  # Generate site list for nucleosome analysis
-  touch "$nucleosome_profiling_dir/config/sites_${filename}.yaml"
-  echo "site_lists:" > "$nucleosome_profiling_dir/config/sites_${filename}.yaml"
-  find "$sitespath" -type f | while read file; do
-      echo " $(basename "$file"): $file" >> "$nucleosome_profiling_dir/config/sites_${filename}.yaml"
-  done
-        
-  sed -e "s!config_cluster!$nucleosome_profiling_dir/config/cluster_slurm.yaml!g" \
-      -e "s!config_sites!$nucleosome_profiling_dir/config/sites_${filename}.yaml!g" \
-      -e "s!config_samples.GC!$nucleosome_profiling_dir/config/samples.GC_${filename}.yaml!g" \
-      -e "s!config_config!$nucleosome_profiling_dir/config/config_${filename}.yaml!g" \
-      "$nucleosome_profiling_dir/griffin_nucleosome_profiling.snakefile" \
-      > "$nucleosome_profiling_dir/griffin_nucleosome_profiling_${filename}.snakefile"
-        
-  snakemake -s "$nucleosome_profiling_dir/griffin_nucleosome_profiling_${filename}.snakefile" --cores $threads --unlock
-  snakemake -s "$nucleosome_profiling_dir/griffin_nucleosome_profiling_${filename}.snakefile" --cores $threads
-        
-  # Extract columns required for nucleosome analysis results
-  header=$(head -n 1 "$nucleosome_profiling_dir/result_${filename}/sample_name_1/sample_name_1.GC_corrected.coverage.tsv")
-  mean_coverage_col=$(echo "$header" | tr '\t' '\n' | grep -n -m 1 "mean_coverage" | cut -d: -f1)
-  central_coverage_col=$(echo "$header" | tr '\t' '\n' | grep -n -m 1 "central_coverage" | cut -d: -f1)
-  amplitude_col=$(echo "$header" | tr '\t' '\n' | grep -n -m 1 "amplitude" | cut -d: -f1)
-  site_name_col=$(echo "$header" | tr '\t' '\n' | grep -n -m 1 "site_name" | cut -d: -f1)
-        
-  awk -v mean_col="$mean_coverage_col" -v central_col="$central_coverage_col" \
-      -v amp_col="$amplitude_col" -v sites_col="$site_name_col" \
-      'BEGIN {FS=OFS="\t"} NR==1 {print $(sites_col), $(mean_col), $(central_col), $(amp_col); next} {print $(sites_col), $(mean_col), $(central_col), $(amp_col)}' \
-      "$nucleosome_profiling_dir/result_${filename}/sample_name_1/sample_name_1.GC_corrected.coverage.tsv" \
-      > "$nucleosome_profiling_dir/result_${filename}/NucleosomeProfile.txt"
-        
-  rm -r "$gc_correction_dir/result_${filename}"
-  rm "$nucleosome_profiling_dir/config/sites_${filename}.yaml" "$nucleosome_profiling_dir/config/samples.GC_${filename}.yaml" "$nucleosome_profiling_dir/config/config_${filename}.yaml"
-  rm "$nucleosome_profiling_dir/griffin_nucleosome_profiling_${filename}.snakefile"
-  cp -f "$nucleosome_profiling_dir/result_${filename}/NucleosomeProfile.txt" "$bam_output_dir/NP/NucleosomeProfile.txt"
-  cp -f -r "$nucleosome_profiling_dir/result_${filename}/plots" "$bam_output_dir/NP/plots"
-  cp -f -r "$nucleosome_profiling_dir/result_${filename}/sample_name_1" "$bam_output_dir/NP/sample_name_1"
-  rm -r "$nucleosome_profiling_dir/result_${filename}"
+    result_dir="$griffin_path/snakemakes"
+    gc_correction_dir="$result_dir/griffin_GC_and_mappability_correction"
+    nucleosome_profiling_dir="$result_dir/griffin_nucleosome_profiling"
+          
+    # Preparing for GC and mappability corrections
+    sed -e "s!Griffin_path!$griffin_path!g" -e "s!reference_path!$fasta!g" -e "s!Ref_dir!$Ref_dir!g" \
+        -e "s!result_name!$gc_correction_dir/result_${filename}!g" "$gc_correction_dir/config/config.yaml" \
+        > "$gc_correction_dir/config/config_${filename}.yaml"
+          
+    sed "s!input!$inputBam!g" "$gc_correction_dir/config/samples.yaml" \
+        > "$gc_correction_dir/config/samples_${filename}.yaml"
+          
+    sed -e "s!config_samples!$gc_correction_dir/config/samples_${filename}.yaml!g" \
+        -e "s!config_config!$gc_correction_dir/config/config_${filename}.yaml!g" \
+        -e "s!config_cluster!$gc_correction_dir/config/cluster_slurm.yaml!g" \
+        "$gc_correction_dir/griffin_GC_and_mappability_correction.snakefile" \
+        > "$gc_correction_dir/griffin_GC_and_mappability_correction_${filename}.snakefile"
+          
+    snakemake -s "$gc_correction_dir/griffin_GC_and_mappability_correction_${filename}.snakefile" --cores $threads
+          
+    rm "$gc_correction_dir/config/config_${filename}.yaml" "$gc_correction_dir/config/samples_${filename}.yaml"
+    rm "$gc_correction_dir/griffin_GC_and_mappability_correction_${filename}.snakefile"
+    mv "$gc_correction_dir/result_${filename}/samples.GC.yaml" "$nucleosome_profiling_dir/config/samples.GC_${filename}.yaml"
+          
+    # Nucleosome profiling analysis
+    sed -e "s!Griffin_path!$griffin_path!g" -e "s!reference_path!$fasta!g" -e "s!Ref_dir!$Ref_dir!g" \
+        -e "s!result_name!$nucleosome_profiling_dir/result_${filename}!g" \
+        -e "s!tmp_name!$nucleosome_profiling_dir/tmp_${filename}!g" \
+        -e "s!config_cluster!$nucleosome_profiling_dir/config/cluster_slurm.yaml!g" \
+        -e "s!config_sites!$nucleosome_profiling_dir/config/sites_${filename}.yaml!g" \
+        -e "s!config_samples.GC!$nucleosome_profiling_dir/config/samples.GC_${filename}.yaml!g" \
+        "$nucleosome_profiling_dir/config/config.yaml" \
+        > "$nucleosome_profiling_dir/config/config_${filename}.yaml"
+          
+    # Generate site list for nucleosome analysis
+    touch "$nucleosome_profiling_dir/config/sites_${filename}.yaml"
+    echo "site_lists:" > "$nucleosome_profiling_dir/config/sites_${filename}.yaml"
+    find "$sitespath" -type f | while read file; do
+        echo " $(basename "$file"): $file" >> "$nucleosome_profiling_dir/config/sites_${filename}.yaml"
+    done
+          
+    sed -e "s!config_cluster!$nucleosome_profiling_dir/config/cluster_slurm.yaml!g" \
+        -e "s!config_sites!$nucleosome_profiling_dir/config/sites_${filename}.yaml!g" \
+        -e "s!config_samples.GC!$nucleosome_profiling_dir/config/samples.GC_${filename}.yaml!g" \
+        -e "s!config_config!$nucleosome_profiling_dir/config/config_${filename}.yaml!g" \
+        "$nucleosome_profiling_dir/griffin_nucleosome_profiling.snakefile" \
+        > "$nucleosome_profiling_dir/griffin_nucleosome_profiling_${filename}.snakefile"
+          
+    snakemake -s "$nucleosome_profiling_dir/griffin_nucleosome_profiling_${filename}.snakefile" --cores $threads --unlock
+    snakemake -s "$nucleosome_profiling_dir/griffin_nucleosome_profiling_${filename}.snakefile" --cores $threads
+          
+    # Extract columns required for nucleosome analysis results
+    header=$(head -n 1 "$nucleosome_profiling_dir/result_${filename}/sample_name_1/sample_name_1.GC_corrected.coverage.tsv")
+    mean_coverage_col=$(echo "$header" | tr '\t' '\n' | grep -n -m 1 "mean_coverage" | cut -d: -f1)
+    central_coverage_col=$(echo "$header" | tr '\t' '\n' | grep -n -m 1 "central_coverage" | cut -d: -f1)
+    amplitude_col=$(echo "$header" | tr '\t' '\n' | grep -n -m 1 "amplitude" | cut -d: -f1)
+    site_name_col=$(echo "$header" | tr '\t' '\n' | grep -n -m 1 "site_name" | cut -d: -f1)
+          
+    awk -v mean_col="$mean_coverage_col" -v central_col="$central_coverage_col" \
+        -v amp_col="$amplitude_col" -v sites_col="$site_name_col" \
+        'BEGIN {FS=OFS="\t"} NR==1 {print $(sites_col), $(mean_col), $(central_col), $(amp_col); next} {print $(sites_col), $(mean_col), $(central_col), $(amp_col)}' \
+        "$nucleosome_profiling_dir/result_${filename}/sample_name_1/sample_name_1.GC_corrected.coverage.tsv" \
+        > "$nucleosome_profiling_dir/result_${filename}/NucleosomeProfile.txt"
+          
+    rm -r "$gc_correction_dir/result_${filename}"
+    rm "$nucleosome_profiling_dir/config/sites_${filename}.yaml" "$nucleosome_profiling_dir/config/samples.GC_${filename}.yaml" "$nucleosome_profiling_dir/config/config_${filename}.yaml"
+    rm "$nucleosome_profiling_dir/griffin_nucleosome_profiling_${filename}.snakefile"
+    cp -f "$nucleosome_profiling_dir/result_${filename}/NucleosomeProfile.txt" "$bam_output_dir/NP/NucleosomeProfile.txt"
+    cp -f -r "$nucleosome_profiling_dir/result_${filename}/plots" "$bam_output_dir/NP/plots"
+    cp -f -r "$nucleosome_profiling_dir/result_${filename}/sample_name_1" "$bam_output_dir/NP/sample_name_1"
+    rm -r "$nucleosome_profiling_dir/result_${filename}"
+  fi
 }
 
 # Calculate Windowed Protection Score
@@ -699,8 +732,10 @@ calculate_emr() {
   
   # aggregated
   bedtools intersect -abam $inputBam -b $bedfiles > $bam_output_dir/EMR/intersect.bam
-  samtools sort -@ $threads -n -o $bam_output_dir/EMR/sorted_intersect.bam $bam_output_dir/EMR/intersect.bam 
-  bedtools bamtobed -bedpe -i $bam_output_dir/EMR/sorted_intersect.bam > $bam_output_dir/EMR/${filename}.bedpe
+  samtools index -@ $threads $bam_output_dir/EMR/intersect.bam
+  alignmentSieve -b $bam_output_dir/EMR/intersect.bam -o $bam_output_dir/EMR/filter.bam -p $threads --minFragmentLength 50 --maxFragmentLength 600
+  samtools sort -@ $threads -n -o $bam_output_dir/EMR/sorted_by_name.bam $bam_output_dir/EMR/filter.bam
+  bedtools bamtobed -bedpe -i $bam_output_dir/EMR/sorted_by_name.bam > $bam_output_dir/EMR/${filename}.bedpe
   awk ' BEGIN {OFS="\t"}
   {
     min_2_5 = $2
@@ -723,7 +758,6 @@ calculate_emr() {
   sed -i '1ichr\tstart\tend\tMotif\tFrequency'  $bam_output_dir/EMR/region_motif_frequency.txt
   rm $bam_output_dir/EMR/aggregated_mds_noheader.txt
   rm $bam_output_dir/EMR/intersect.bam
-  rm $bam_output_dir/EMR/sorted_intersect.bam
   rm $bam_output_dir/EMR/${filename}.bedpe
   rm $bam_output_dir/EMR/${filename}.bed
   
@@ -731,20 +765,24 @@ calculate_emr() {
 
 # Calculate Fragmentation Profile for Regions
 calculate_fpr() {
-  if [[ "$sequencing" == "single" ]] ; then
-    echo "Error: Feature FPR pecifically designed for paired-end sequencing data"
-    exit 1
+  if [[ "$mt" == 1 ]];then
+    echo "chrM region is not supportd by feature FPR"
+  elif [[ "$mt" == 0 ]];then
+    if [[ "$sequencing" == "single" ]] ; then
+      echo "Error: Feature FPR pecifically designed for paired-end sequencing data"
+      exit 1
+    fi
+    local inputBam=$1
+    local bam_output_dir=$2
+    echo '
+    *****Calculating FPR for file: '$inputBam'*****'
+    mkdir -p $bam_output_dir/FPR
+    awk 'BEGIN {print "chr\tstart\tend"} {print}' $bedfiles > $bam_output_dir/FPR/regions_with_header.bed
+    Rscript $script_dir/Fragmentation_profile/fragmentProfile_delfi.R -i=$inputBam -o=$bam_output_dir/FPR/FragmentationProfile.txt $bam_output_dir/FPR/regions_with_header.bed $genomeVer $script_dir
+    cut -f1,2,3,6,7,8 $bam_output_dir/FPR/FragmentationProfile.txt > $bam_output_dir/FPR/Fragmentation_Profile_regions.txt
+    rm $bam_output_dir/FPR/FragmentationProfile.txt
+    rm $bam_output_dir/FPR/regions_with_header.bed
   fi
-  local inputBam=$1
-  local bam_output_dir=$2
-  echo '
-  *****Calculating FPR for file: '$inputBam'*****'
-  mkdir -p $bam_output_dir/FPR
-  awk 'BEGIN {print "chr\tstart\tend"} {print}' $bedfiles > $bam_output_dir/FPR/regions_with_header.bed
-  Rscript $script_dir/Fragmentation_profile/fragmentProfile_delfi.R -i=$inputBam -o=$bam_output_dir/FPR/FragmentationProfile.txt $bam_output_dir/FPR/regions_with_header.bed $genomeVer $script_dir
-  cut -f1,2,3,6,7,8 $bam_output_dir/FPR/FragmentationProfile.txt > $bam_output_dir/FPR/Fragmentation_Profile_regions.txt
-  rm $bam_output_dir/FPR/FragmentationProfile.txt
-  rm $bam_output_dir/FPR/regions_with_header.bed
 }
 
 # Calculate Promoter Fragmentation Entropy
@@ -781,12 +819,70 @@ calculate_pfe() {
   fi
   awk 'BEGIN {OFS="\t"} {if ($2 < 0) $2 = 0; print}' $bam_output_dir/middle/uncorrect_2_panelbed.txt > $bam_output_dir/middle/panelbed.txt
 
-  bedtools intersect -a $inputBam -b $bam_output_dir/middle/panelbed.txt -wa > $bam_output_dir/middle/intersected.bam
-  samtools index $bam_output_dir/middle/intersected.bam
-  Rscript $script_dir/Epic-seq/code/runEPIC.R --epic_dir $script_dir/Epic-seq/code --bamdir $bam_output_dir/middle --tssinfo $bam_output_dir/middle/tssinfo.txt --panelbed $bam_output_dir/middle/panelbed.txt --outdir $bam_output_dir/middle $addEpicSeq
-  mkdir -p $bam_output_dir/PFE
-  cut -f2,5 $bam_output_dir/middle/pfe.matrix.merged.by.0.txt > $bam_output_dir/PFE/PFE.txt
-  rm -r $bam_output_dir/middle
+  if [[ "$mt" == 1 ]];then
+    grep -E "^chrM|^chrMT" $bam_output_dir/middle/panelbed.txt > $bam_output_dir/middle/chrM_panelbed.txt
+    rm $bam_output_dir/middle/panelbed.txt
+    mv $bam_output_dir/middle/chrM_panelbed.txt $bam_output_dir/middle/panelbed.txt
+
+    sed -n '1p; /^chrM/p' $bam_output_dir/middle/tssinfo.txt > $bam_output_dir/middle/chrM_tssinfo.txt
+    rm $bam_output_dir/middle/tssinfo.txt
+    mv $bam_output_dir/middle/chrM_tssinfo.txt $bam_output_dir/middle/tssinfo.txt
+  fi
+
+  # quality control
+  # depth
+  samtools depth -aa -b $bam_output_dir/middle/panelbed.txt $inputBam > $bam_output_dir/middle/depth.txt
+  depth=$(sort -k3,3n $bam_output_dir/middle/depth.txt | awk '{
+      a[NR] = $3
+  } 
+  END { 
+      if (NR % 2) 
+          print a[(NR + 1) / 2]
+      else 
+          print (a[NR / 2] + a[NR / 2 + 1]) / 2.0
+  }')
+  
+  # fragment length density mode
+  bamPEFragmentSize -b $inputBam -hist $bam_output_dir/middle/fragment_hist.fragmentSize.png -p $threads --outRawFragmentLengths $bam_output_dir/middle/fragmentSize.txt
+  INPUT_FILE="$bam_output_dir/middle/fragmentSize.txt"                                                                                                             
+  MODE=$(Rscript -e "
+  data <- read.table('$INPUT_FILE', header=TRUE, skip=1)
+  colnames(data) <- c('Size', 'Occurrences', 'Sample')
+  fragments <- rep(data\$Size, data\$Occurrences)
+  d <- density(fragments, bw = 'SJ')
+  cat(round(d\$x[which.max(d\$y)], 2))
+  " 2>/dev/null)
+  MODE=${MODE%.*}
+  
+  echo "Median sequencing depth of $inputBam : $depth"
+  echo "Fragment length density mode of $inputBam : $MODE"
+  
+  if [[ "$depth" -ge "$PFEdepth" ]] && [[ "$MODE" -ge 140 && "$MODE" -le 185 ]]; then
+      bedtools intersect -a $inputBam -b $bam_output_dir/middle/panelbed.txt -wa > $bam_output_dir/middle/intersected.bam
+      samtools index $bam_output_dir/middle/intersected.bam
+      Rscript $script_dir/Epic-seq/code/runEPIC.R --epic_dir $script_dir/Epic-seq/code --bamdir $bam_output_dir/middle --tssinfo $bam_output_dir/middle/tssinfo.txt --panelbed $bam_output_dir/middle/panelbed.txt --outdir $bam_output_dir/middle $addEpicSeq
+      mkdir -p $bam_output_dir/PFE
+      cut -f2,5 $bam_output_dir/middle/pfe.matrix.merged.by.0.txt > $bam_output_dir/PFE/PFE.txt
+      # rm -r $bam_output_dir/middle
+      
+  elif [[ "$depth" -ge "$PFEdepth" ]]; then
+      echo "Sample $inputBam failed for the quality control of feature PFE
+      Fragment length density mode of sample must between 140 and 185"
+      # rm -r $bam_output_dir/middle
+      
+  elif [[ "$MODE" -ge 140 && "$MODE" -le 185 ]]; then
+      echo "Sample $inputBam failed for the quality control of feature PFE
+      Median sequencing depth of sample must be large than ${PFEdepth}x"
+      # rm -r $bam_output_dir/middle
+      
+  else
+      echo "Sample $inputBam failed for the quality control of feature PFE
+      Fragment length density mode of sample must between 140 and 185
+      Median sequencing depth of sample must be large than ${PFEdepth}x"
+      # rm -r $bam_output_dir/middle
+      
+  fi
+
 }
 
 # Calculate TSS coverage 
@@ -850,6 +946,12 @@ calculate_tssc() {
   # correct the output bed file
   awk 'BEGIN {OFS="\t"} NR==FNR {sizes[$1]=$2; next} {if ($3 > sizes[$1]) $3=sizes[$1]; print}' $chrom_size $bam_output_dir/TSSC/TSS.bed | \
   awk 'NF >= 6' | awk -v OFS='\t' '{$1=$1; print}' > $bam_output_dir/TSSC/correct_6col_TSS.bed
+
+  if [[ "$mt" == 1 ]];then
+    grep -E "^chrM|^chrMT" $bam_output_dir/TSSC/correct_6col_TSS.bed > $bam_output_dir/TSSC/chrM_correct_6col_TSS.bed
+    rm $bam_output_dir/TSSC/correct_6col_TSS.bed
+    mv $bam_output_dir/TSSC/chrM_correct_6col_TSS.bed $bam_output_dir/TSSC/correct_6col_TSS.bed
+  fi
 
   if [[ "$sequencing" == "pair" ]];then
     bamCoverage -b $inputBam -o $bam_output_dir/TSSC/coverage.bw --extendReads $addbamCoverage --numberOfProcessors $threads --normalizeUsing $normalization --minFragmentLength 180 --maxFragmentLength 200
@@ -1085,10 +1187,27 @@ if [[ "$noDA" == 0 ]];then
     mkdir -p $outputDir/Machine_Learning/multiple_modality/Model_based
     mkdir -p $outputDir/Machine_Learning/multiple_modality/Transformation_based
 
+    if [[ ",$Feature," == *",PFE,"* ]]; then
+        if [[ -f "$outputDir/Feature_Processing_and_Selection/Feature_Processing/PFE.csv" ]]; then
+            mkdir -p $outputDir/Feature_Processing_and_Selection/Feature_Processing/filter_sample
+            multi_input_dir="$outputDir/Feature_Processing_and_Selection/Feature_Processing/filter_sample"
+            Rscript $script_dir/Feature_Processing/filter_samples.R $outputDir/Feature_Processing_and_Selection/Feature_Processing
+            cp $outputDir/Feature_Processing_and_Selection/Feature_Processing/PFE.csv $outputDir/Feature_Processing_and_Selection/Feature_Processing/filter_sample
+        else
+            echo "All the samples failed for the quality control of feature PFE.
+                 Giving up feature PFE for the multi-model integration."
+            multi_input_dir="$outputDir/Feature_Processing_and_Selection/Feature_Processing"
+        fi
+        
+    else
+        multi_input_dir="$outputDir/Feature_Processing_and_Selection/Feature_Processing"
+        
+    fi
+    
     if [[ "$cvMulti" == "LOO" ]];then
       python $script_dir/Machine_learning/run_multi_modality.py \
       --modality multi \
-      --input_dir $outputDir/Feature_Processing_and_Selection/Feature_Processing \
+      --input_dir $multi_input_dir \
       --DA_output_dir $outputDir/Machine_Learning/multiple_modality \
       --fusion_type concat model trans \
       --model_method $modelMethod \
@@ -1110,7 +1229,7 @@ if [[ "$noDA" == 0 ]];then
     elif [[ "$cvMulti" == "KFold" ]];then
       python $script_dir/Machine_learning/run_multi_modality.py \
       --modality multi \
-      --input_dir $outputDir/Feature_Processing_and_Selection/Feature_Processing \
+      --input_dir $multi_input_dir \
       --DA_output_dir $outputDir/Machine_Learning/multiple_modality \
       --fusion_type concat model trans \
       --model_method $modelMethod \

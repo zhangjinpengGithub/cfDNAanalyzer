@@ -1,0 +1,470 @@
+
+===== Parameters Summary =====
+noDA: False
+modality: multi
+input_dir: ./train_data/raw_two/raw_no_stand/std_train
+filterMethod: ['IG']
+filterFrac: 0.99999
+wrapperMethod: None
+wrapperFrac: 0.2
+embeddedMethod: None
+embeddedFrac: 0.2
+hybridType: None
+hybridMethod1: None
+hybridMethod2: None
+hybridFrac1: 0.2
+hybridFrac2: 0.2
+classNum: 2
+cvSingle: LOO
+cvSingle_test_ratio: 0.2
+nsplitSingle: 5
+classifierSingle: None
+cvMulti: Independent
+cvMulti_test_ratio: 0.2
+nsplitMulti: 5
+classifierMulti: ['KNN', 'SVM']
+fusion_type: ['concat', 'model', 'trans']
+model_method: ['average', 'weighted', 'stack']
+trans_method: ['pca', 'rbf', 'snf']
+external_input_dir: ./test_data/new_two/std_test
+explain: []
+DA_output_dir: tst4
+================================
+
+[DEBUG] Parsed args: Namespace(DA_output_dir='tst4', classNum=2, classifierMulti=['KNN', 'SVM'], classifierSingle=None, cvMulti='Independent', cvMulti_test_ratio=0.2, cvSingle='LOO', cvSingle_test_ratio=0.2, embeddedFrac=0.2, embeddedMethod=None, explain=[], external_input_dir='./test_data/new_two/std_test', filterFrac=0.99999, filterMethod=['IG'], fusion_type=['concat', 'model', 'trans'], hybridFrac1=0.2, hybridFrac2=0.2, hybridMethod1=None, hybridMethod2=None, hybridType=None, input_dir='./train_data/raw_two/raw_no_stand/std_train', modality='multi', model_method=['average', 'weighted', 'stack'], noDA=False, nsplitMulti=5, nsplitSingle=5, trans_method=['pca', 'rbf', 'snf'], wrapperFrac=0.2, wrapperMethod=None)
+[INFO] Loading .csv files from ./train_data/raw_two/raw_no_stand/std_train
+[DEBUG] Loaded CSV modality 'EM' from ./train_data/raw_two/raw_no_stand/std_train/EM.csv
+[DEBUG]   X.shape = (50, 50)
+[DEBUG] CSV 'EM' - y:
+        dtype       = int64
+        n_samples   = 50
+        n_unique    = 2
+        uniques[:10] = [1, 0]
+        value_counts (top 10) = {1: 25, 0: 25}
+[DEBUG] Loaded CSV modality 'NP' from ./train_data/raw_two/raw_no_stand/std_train/NP.csv
+[DEBUG]   X.shape = (50, 47)
+[DEBUG] CSV 'NP' - y:
+        dtype       = int64
+        n_samples   = 50
+        n_unique    = 2
+        uniques[:10] = [1, 0]
+        value_counts (top 10) = {1: 25, 0: 25}
+[DEBUG] Total modalities loaded from ./train_data/raw_two/raw_no_stand/std_train: 2
+[INFO] Loaded training modalities: ['EM', 'NP']
+[DEBUG] external_input_dir = ./test_data/new_two/std_test
+[INFO] Loading .csv files from ./test_data/new_two/std_test
+[DEBUG] Loaded CSV modality 'EM' from ./test_data/new_two/std_test/EM.csv
+[DEBUG]   X.shape = (316, 50)
+[DEBUG] CSV 'EM' - y:
+        dtype       = int64
+        n_samples   = 316
+        n_unique    = 2
+        uniques[:10] = [0, 1]
+        value_counts (top 10) = {0: 262, 1: 54}
+[DEBUG] Loaded CSV modality 'NP' from ./test_data/new_two/std_test/NP.csv
+[DEBUG]   X.shape = (316, 47)
+[DEBUG] CSV 'NP' - y:
+        dtype       = int64
+        n_samples   = 316
+        n_unique    = 2
+        uniques[:10] = [0, 1]
+        value_counts (top 10) = {0: 262, 1: 54}
+[DEBUG] Total modalities loaded from ./test_data/new_two/std_test: 2
+[INFO] Loaded external modalities: ['EM', 'NP']
+
+================ External Validation (Independent) ================
+[DEBUG] Modality names match between train and external: ['EM', 'NP']
+[DEBUG] Modality 'EM': X_train.shape=(50, 50), X_ext.shape=(316, 50)
+[DEBUG] Train y (first modality):
+        dtype       = int64
+        n_samples   = 50
+        n_unique    = 2
+        uniques[:10] = [1, 0]
+        value_counts (top 10) = {1: 25, 0: 25}
+[DEBUG] External y (first modality):
+        dtype       = int64
+        n_samples   = 316
+        n_unique    = 2
+        uniques[:10] = [0, 1]
+        value_counts (top 10) = {0: 262, 1: 54}
+[DEBUG] Modality 'NP': X_train.shape=(50, 47), X_ext.shape=(316, 47)
+[INFO] #Train samples = 50, #External samples = 316
+[DEBUG] Combined y (train+external):
+        dtype       = int64
+        n_samples   = 366
+        n_unique    = 2
+        uniques[:10] = [0, 1]
+        value_counts (top 10) = {0: 287, 1: 79}
+[DEBUG] ExternalCV init: n_train=50, n_total=366, train_idx[0:5]=[0 1 2 3 4], test_idx[0:5]=[50 51 52 53 54]
+[DEBUG] Number of FS combinations = 1
+[DEBUG] FS combinations = [{'filterMethod': ['IG'], 'filterFrac': 0.99999, 'wrapperMethod': [], 'wrapperFrac': 0.0, 'embeddedMethod': [], 'embeddedFrac': 0.0, 'hybridType': '', 'hybridMethod1': '', 'hybridMethod2': '', 'hybridFrac1': 0.0, 'hybridFrac2': 0.0, 'fs_label': 'filter_IG_0.99999'}]
+[DEBUG] args.classNum = 2
+[DEBUG] args.fusion_type = ['concat', 'model', 'trans']
+[DEBUG] args.classifierMulti = ['KNN', 'SVM']
+
+[External] Fusing modalities using: concat
+[DEBUG] Now processing FS combination: filter_IG_0.99999, details = {'filterMethod': ['IG'], 'filterFrac': 0.99999, 'wrapperMethod': [], 'wrapperFrac': 0.0, 'embeddedMethod': [], 'embeddedFrac': 0.0, 'hybridType': '', 'hybridMethod1': '', 'hybridMethod2': '', 'hybridFrac1': 0.0, 'hybridFrac2': 0.0, 'fs_label': 'filter_IG_0.99999'}
+
+>>> [External Concat] Classifier: KNN, FS: filter_IG_0.99999
+[DEBUG] ExternalCV.split called: will yield one fold with 50 train and 316 test samples
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.37it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.37it/s]
+[DEBUG] save_outputs [concat-concat] clf=KNN, FS=filter_IG_0.99999: prediction_df shape = (316, 5)
+[DEBUG] save_outputs [concat-concat] clf=KNN, FS=filter_IG_0.99999 - TrueLabel:
+        dtype       = int64
+        n_samples   = 316
+        n_unique    = 2
+        uniques[:10] = [0, 1]
+        value_counts (top 10) = {0: 262, 1: 54}
+[DEBUG] save_outputs [concat-concat] clf=KNN, FS=filter_IG_0.99999: detected prob_cols = ['Prob_Class0', 'Prob_Class1']
+[DEBUG] save_outputs [concat-concat] clf=KNN, FS=filter_IG_0.99999: manual accuracy from prob_cols = 0.174051
+[DEBUG] save_outputs [concat-concat] clf=KNN, FS=filter_IG_0.99999: manual accuracy if flipped (1 - y_pred) = 0.825949
+Accuracy: 0.174051
+Precision: 0.171429
+Recall: 1.000000
+F1 Score: 0.292683
+Sensitivity: 1.000000
+Specificity: 0.003817
+AUC: 0.413627
+[DEBUG] Metrics [concat-concat] clf=KNN, FS=filter_IG_0.99999: accuracy=0.174051, auc=0.413627, TotalTime_sec=0.1644, PeakMemory_MB=1.4417
+[INFO] Saved results to: tst4/external_validation/concat/filter_IG_0.99999/concat
+[INFO] Time = 0.1644s | Memory = 193.5625MB | Peak = 1.4417MB
+
+>>> [External Concat] Classifier: SVM, FS: filter_IG_0.99999
+[DEBUG] ExternalCV.split called: will yield one fold with 50 train and 316 test samples
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.41it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.40it/s]
+[DEBUG] save_outputs [concat-concat] clf=SVM, FS=filter_IG_0.99999: prediction_df shape = (316, 5)
+[DEBUG] save_outputs [concat-concat] clf=SVM, FS=filter_IG_0.99999 - TrueLabel:
+        dtype       = int64
+        n_samples   = 316
+        n_unique    = 2
+        uniques[:10] = [0, 1]
+        value_counts (top 10) = {0: 262, 1: 54}
+[DEBUG] save_outputs [concat-concat] clf=SVM, FS=filter_IG_0.99999: detected prob_cols = ['Prob_Class0', 'Prob_Class1']
+[DEBUG] save_outputs [concat-concat] clf=SVM, FS=filter_IG_0.99999: manual accuracy from prob_cols = 0.170886
+[DEBUG] save_outputs [concat-concat] clf=SVM, FS=filter_IG_0.99999: manual accuracy if flipped (1 - y_pred) = 0.829114
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.122137
+[DEBUG] Metrics [concat-concat] clf=SVM, FS=filter_IG_0.99999: accuracy=0.170886, auc=0.122137, TotalTime_sec=0.1596, PeakMemory_MB=1.1544
+[INFO] Saved results to: tst4/external_validation/concat/filter_IG_0.99999/concat
+[INFO] Time = 0.1596s | Memory = 194.75MB | Peak = 1.1544MB
+[DEBUG] Merged predictions saved to tst4/external_validation/concat/filter_IG_0.99999/concat/all_classifiers_predictions.csv
+[DEBUG] Merged metrics saved to tst4/external_validation/concat/filter_IG_0.99999/concat/all_classifiers_metrics.csv
+[DEBUG] Merged all-method predictions saved to tst4/external_validation/concat/filter_IG_0.99999/all_methods_all_classifiers_predictions.csv
+[DEBUG] Merged all-method metrics saved to tst4/external_validation/concat/filter_IG_0.99999/all_methods_all_classifiers_metrics.csv
+
+[External] Fusing modalities using: model
+[DEBUG] Now processing FS combination: filter_IG_0.99999, details = {'filterMethod': ['IG'], 'filterFrac': 0.99999, 'wrapperMethod': [], 'wrapperFrac': 0.0, 'embeddedMethod': [], 'embeddedFrac': 0.0, 'hybridType': '', 'hybridMethod1': '', 'hybridMethod2': '', 'hybridFrac1': 0.0, 'hybridFrac2': 0.0, 'fs_label': 'filter_IG_0.99999'}
+
+>>> [External Model-average] Classifier: KNN, FS: filter_IG_0.99999
+[DEBUG] ExternalCV.split called: will yield one fold with 50 train and 316 test samples
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.48it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.46it/s]
+[DEBUG] save_outputs [model-average] clf=KNN, FS=filter_IG_0.99999: prediction_df shape = (316, 5)
+[DEBUG] save_outputs [model-average] clf=KNN, FS=filter_IG_0.99999 - TrueLabel:
+        dtype       = int64
+        n_samples   = 316
+        n_unique    = 2
+        uniques[:10] = [0, 1]
+        value_counts (top 10) = {0: 262, 1: 54}
+[DEBUG] save_outputs [model-average] clf=KNN, FS=filter_IG_0.99999: detected prob_cols = ['Prob_Class0', 'Prob_Class1']
+[DEBUG] save_outputs [model-average] clf=KNN, FS=filter_IG_0.99999: manual accuracy from prob_cols = 0.158228
+[DEBUG] save_outputs [model-average] clf=KNN, FS=filter_IG_0.99999: manual accuracy if flipped (1 - y_pred) = 0.841772
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.266964
+[DEBUG] Metrics [model-average] clf=KNN, FS=filter_IG_0.99999: accuracy=0.170886, auc=0.266964, TotalTime_sec=0.1908, PeakMemory_MB=0.7445
+[INFO] Saved results to: tst4/external_validation/model/filter_IG_0.99999/average
+[INFO] Time = 0.1908s | Memory = 194.75MB | Peak = 0.7445MB
+
+>>> [External Model-weighted] Classifier: KNN, FS: filter_IG_0.99999
+[DEBUG] ExternalCV.split called: will yield one fold with 50 train and 316 test samples
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.74it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.72it/s]
+[DEBUG] save_outputs [model-weighted] clf=KNN, FS=filter_IG_0.99999: prediction_df shape = (316, 5)
+[DEBUG] save_outputs [model-weighted] clf=KNN, FS=filter_IG_0.99999 - TrueLabel:
+        dtype       = int64
+        n_samples   = 316
+        n_unique    = 2
+        uniques[:10] = [0, 1]
+        value_counts (top 10) = {0: 262, 1: 54}
+[DEBUG] save_outputs [model-weighted] clf=KNN, FS=filter_IG_0.99999: detected prob_cols = ['Prob_Class0', 'Prob_Class1']
+[DEBUG] save_outputs [model-weighted] clf=KNN, FS=filter_IG_0.99999: manual accuracy from prob_cols = 0.170886
+[DEBUG] save_outputs [model-weighted] clf=KNN, FS=filter_IG_0.99999: manual accuracy if flipped (1 - y_pred) = 0.829114
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.250530
+[DEBUG] Metrics [model-weighted] clf=KNN, FS=filter_IG_0.99999: accuracy=0.170886, auc=0.25053, TotalTime_sec=0.1839, PeakMemory_MB=0.713
+[INFO] Saved results to: tst4/external_validation/model/filter_IG_0.99999/weighted
+[INFO] Time = 0.1839s | Memory = 194.75MB | Peak = 0.713MB
+
+>>> [External Model-stack] Classifier: KNN, FS: filter_IG_0.99999
+[DEBUG] ExternalCV.split called: will yield one fold with 50 train and 316 test samples
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.15it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.13it/s]
+[DEBUG] save_outputs [model-stack] clf=KNN, FS=filter_IG_0.99999: prediction_df shape = (316, 5)
+[DEBUG] save_outputs [model-stack] clf=KNN, FS=filter_IG_0.99999 - TrueLabel:
+        dtype       = int64
+        n_samples   = 316
+        n_unique    = 2
+        uniques[:10] = [0, 1]
+        value_counts (top 10) = {0: 262, 1: 54}
+[DEBUG] save_outputs [model-stack] clf=KNN, FS=filter_IG_0.99999: detected prob_cols = ['Prob_Class0', 'Prob_Class1']
+[DEBUG] save_outputs [model-stack] clf=KNN, FS=filter_IG_0.99999: manual accuracy from prob_cols = 0.170886
+[DEBUG] save_outputs [model-stack] clf=KNN, FS=filter_IG_0.99999: manual accuracy if flipped (1 - y_pred) = 0.829114
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.250530
+[DEBUG] Metrics [model-stack] clf=KNN, FS=filter_IG_0.99999: accuracy=0.170886, auc=0.25053, TotalTime_sec=0.1732, PeakMemory_MB=0.7906
+[INFO] Saved results to: tst4/external_validation/model/filter_IG_0.99999/stack
+[INFO] Time = 0.1732s | Memory = 194.75MB | Peak = 0.7906MB
+
+>>> [External Model-average] Classifier: SVM, FS: filter_IG_0.99999
+[DEBUG] ExternalCV.split called: will yield one fold with 50 train and 316 test samples
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.89it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.87it/s]
+[DEBUG] save_outputs [model-average] clf=SVM, FS=filter_IG_0.99999: prediction_df shape = (316, 5)
+[DEBUG] save_outputs [model-average] clf=SVM, FS=filter_IG_0.99999 - TrueLabel:
+        dtype       = int64
+        n_samples   = 316
+        n_unique    = 2
+        uniques[:10] = [0, 1]
+        value_counts (top 10) = {0: 262, 1: 54}
+[DEBUG] save_outputs [model-average] clf=SVM, FS=filter_IG_0.99999: detected prob_cols = ['Prob_Class0', 'Prob_Class1']
+[DEBUG] save_outputs [model-average] clf=SVM, FS=filter_IG_0.99999: manual accuracy from prob_cols = 0.829114
+[DEBUG] save_outputs [model-average] clf=SVM, FS=filter_IG_0.99999: manual accuracy if flipped (1 - y_pred) = 0.170886
+Accuracy: 0.829114
+Precision: 0.000000
+Recall: 0.000000
+F1 Score: 0.000000
+Sensitivity: 0.000000
+Specificity: 1.000000
+AUC: 0.255973
+[DEBUG] Metrics [model-average] clf=SVM, FS=filter_IG_0.99999: accuracy=0.829114, auc=0.255973, TotalTime_sec=0.1807, PeakMemory_MB=0.7079
+[INFO] Saved results to: tst4/external_validation/model/filter_IG_0.99999/average
+[INFO] Time = 0.1807s | Memory = 194.75MB | Peak = 0.7079MB
+
+>>> [External Model-weighted] Classifier: SVM, FS: filter_IG_0.99999
+[DEBUG] ExternalCV.split called: will yield one fold with 50 train and 316 test samples
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.58it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.56it/s]
+[DEBUG] save_outputs [model-weighted] clf=SVM, FS=filter_IG_0.99999: prediction_df shape = (316, 5)
+[DEBUG] save_outputs [model-weighted] clf=SVM, FS=filter_IG_0.99999 - TrueLabel:
+        dtype       = int64
+        n_samples   = 316
+        n_unique    = 2
+        uniques[:10] = [0, 1]
+        value_counts (top 10) = {0: 262, 1: 54}
+[DEBUG] save_outputs [model-weighted] clf=SVM, FS=filter_IG_0.99999: detected prob_cols = ['Prob_Class0', 'Prob_Class1']
+[DEBUG] save_outputs [model-weighted] clf=SVM, FS=filter_IG_0.99999: manual accuracy from prob_cols = 0.829114
+[DEBUG] save_outputs [model-weighted] clf=SVM, FS=filter_IG_0.99999: manual accuracy if flipped (1 - y_pred) = 0.170886
+Accuracy: 0.829114
+Precision: 0.000000
+Recall: 0.000000
+F1 Score: 0.000000
+Sensitivity: 0.000000
+Specificity: 1.000000
+AUC: 0.251838
+[DEBUG] Metrics [model-weighted] clf=SVM, FS=filter_IG_0.99999: accuracy=0.829114, auc=0.251838, TotalTime_sec=0.1889, PeakMemory_MB=0.6864
+[INFO] Saved results to: tst4/external_validation/model/filter_IG_0.99999/weighted
+[INFO] Time = 0.1889s | Memory = 194.75MB | Peak = 0.6864MB
+
+>>> [External Model-stack] Classifier: SVM, FS: filter_IG_0.99999
+[DEBUG] ExternalCV.split called: will yield one fold with 50 train and 316 test samples
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.05it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.03it/s]
+[DEBUG] save_outputs [model-stack] clf=SVM, FS=filter_IG_0.99999: prediction_df shape = (316, 5)
+[DEBUG] save_outputs [model-stack] clf=SVM, FS=filter_IG_0.99999 - TrueLabel:
+        dtype       = int64
+        n_samples   = 316
+        n_unique    = 2
+        uniques[:10] = [0, 1]
+        value_counts (top 10) = {0: 262, 1: 54}
+[DEBUG] save_outputs [model-stack] clf=SVM, FS=filter_IG_0.99999: detected prob_cols = ['Prob_Class0', 'Prob_Class1']
+[DEBUG] save_outputs [model-stack] clf=SVM, FS=filter_IG_0.99999: manual accuracy from prob_cols = 0.170886
+[DEBUG] save_outputs [model-stack] clf=SVM, FS=filter_IG_0.99999: manual accuracy if flipped (1 - y_pred) = 0.829114
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.250141
+[DEBUG] Metrics [model-stack] clf=SVM, FS=filter_IG_0.99999: accuracy=0.170886, auc=0.250141, TotalTime_sec=0.1744, PeakMemory_MB=0.6901
+[INFO] Saved results to: tst4/external_validation/model/filter_IG_0.99999/stack
+[INFO] Time = 0.1744s | Memory = 194.75MB | Peak = 0.6901MB
+[DEBUG] Merged predictions saved to tst4/external_validation/model/filter_IG_0.99999/average/all_classifiers_predictions.csv
+[DEBUG] Merged metrics saved to tst4/external_validation/model/filter_IG_0.99999/average/all_classifiers_metrics.csv
+[DEBUG] Merged predictions saved to tst4/external_validation/model/filter_IG_0.99999/weighted/all_classifiers_predictions.csv
+[DEBUG] Merged metrics saved to tst4/external_validation/model/filter_IG_0.99999/weighted/all_classifiers_metrics.csv
+[DEBUG] Merged predictions saved to tst4/external_validation/model/filter_IG_0.99999/stack/all_classifiers_predictions.csv
+[DEBUG] Merged metrics saved to tst4/external_validation/model/filter_IG_0.99999/stack/all_classifiers_metrics.csv
+[DEBUG] Merged all-method predictions saved to tst4/external_validation/model/filter_IG_0.99999/all_methods_all_classifiers_predictions.csv
+[DEBUG] Merged all-method metrics saved to tst4/external_validation/model/filter_IG_0.99999/all_methods_all_classifiers_metrics.csv
+
+[External] Fusing modalities using: trans
+[DEBUG] Now processing FS combination: filter_IG_0.99999, details = {'filterMethod': ['IG'], 'filterFrac': 0.99999, 'wrapperMethod': [], 'wrapperFrac': 0.0, 'embeddedMethod': [], 'embeddedFrac': 0.0, 'hybridType': '', 'hybridMethod1': '', 'hybridMethod2': '', 'hybridFrac1': 0.0, 'hybridFrac2': 0.0, 'fs_label': 'filter_IG_0.99999'}
+
+>>> [External Trans-pca] Classifier: KNN, FS: filter_IG_0.99999
+[DEBUG] ExternalCV.split called: will yield one fold with 50 train and 316 test samples
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.35it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.34it/s]
+[DEBUG] save_outputs [trans-pca] clf=KNN, FS=filter_IG_0.99999: prediction_df shape = (316, 5)
+[DEBUG] save_outputs [trans-pca] clf=KNN, FS=filter_IG_0.99999 - TrueLabel:
+        dtype       = int64
+        n_samples   = 316
+        n_unique    = 2
+        uniques[:10] = [0, 1]
+        value_counts (top 10) = {0: 262, 1: 54}
+[DEBUG] save_outputs [trans-pca] clf=KNN, FS=filter_IG_0.99999: detected prob_cols = ['Prob_Class0', 'Prob_Class1']
+[DEBUG] save_outputs [trans-pca] clf=KNN, FS=filter_IG_0.99999: manual accuracy from prob_cols = 0.174051
+[DEBUG] save_outputs [trans-pca] clf=KNN, FS=filter_IG_0.99999: manual accuracy if flipped (1 - y_pred) = 0.825949
+Accuracy: 0.174051
+Precision: 0.171429
+Recall: 1.000000
+F1 Score: 0.292683
+Sensitivity: 1.000000
+Specificity: 0.003817
+AUC: 0.413627
+[DEBUG] Metrics [trans-pca] clf=KNN, FS=filter_IG_0.99999: accuracy=0.174051, auc=0.413627, TotalTime_sec=0.1607, PeakMemory_MB=0.9687
+[INFO] Saved results to: tst4/external_validation/trans/filter_IG_0.99999/pca
+[INFO] Time = 0.1607s | Memory = 195.9375MB | Peak = 0.9687MB
+
+>>> [External Trans-rbf] Classifier: KNN, FS: filter_IG_0.99999
+[DEBUG] ExternalCV.split called: will yield one fold with 50 train and 316 test samples
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.60it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.59it/s]
+[DEBUG] save_outputs [trans-rbf] clf=KNN, FS=filter_IG_0.99999: prediction_df shape = (316, 5)
+[DEBUG] save_outputs [trans-rbf] clf=KNN, FS=filter_IG_0.99999 - TrueLabel:
+        dtype       = int64
+        n_samples   = 316
+        n_unique    = 2
+        uniques[:10] = [0, 1]
+        value_counts (top 10) = {0: 262, 1: 54}
+[DEBUG] save_outputs [trans-rbf] clf=KNN, FS=filter_IG_0.99999: detected prob_cols = ['Prob_Class0', 'Prob_Class1']
+[DEBUG] save_outputs [trans-rbf] clf=KNN, FS=filter_IG_0.99999: manual accuracy from prob_cols = 0.170886
+[DEBUG] save_outputs [trans-rbf] clf=KNN, FS=filter_IG_0.99999: manual accuracy if flipped (1 - y_pred) = 0.829114
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.500000
+[DEBUG] Metrics [trans-rbf] clf=KNN, FS=filter_IG_0.99999: accuracy=0.170886, auc=0.5, TotalTime_sec=0.1569, PeakMemory_MB=1.3306
+[INFO] Saved results to: tst4/external_validation/trans/filter_IG_0.99999/rbf
+[INFO] Time = 0.1569s | Memory = 195.9375MB | Peak = 1.3306MB
+
+>>> [External Trans-snf] Classifier: KNN, FS: filter_IG_0.99999
+[DEBUG] ExternalCV.split called: will yield one fold with 50 train and 316 test samples
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.40it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.07it/s]
+[DEBUG] save_outputs [trans-snf] clf=KNN, FS=filter_IG_0.99999: prediction_df shape = (316, 5)
+[DEBUG] save_outputs [trans-snf] clf=KNN, FS=filter_IG_0.99999 - TrueLabel:
+        dtype       = int64
+        n_samples   = 316
+        n_unique    = 2
+        uniques[:10] = [0, 1]
+        value_counts (top 10) = {0: 262, 1: 54}
+[DEBUG] save_outputs [trans-snf] clf=KNN, FS=filter_IG_0.99999: detected prob_cols = ['Prob_Class0', 'Prob_Class1']
+[DEBUG] save_outputs [trans-snf] clf=KNN, FS=filter_IG_0.99999: manual accuracy from prob_cols = 0.170886
+[DEBUG] save_outputs [trans-snf] clf=KNN, FS=filter_IG_0.99999: manual accuracy if flipped (1 - y_pred) = 0.829114
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.500000
+[DEBUG] Metrics [trans-snf] clf=KNN, FS=filter_IG_0.99999: accuracy=0.170886, auc=0.5, TotalTime_sec=0.2025, PeakMemory_MB=14.2855
+[INFO] Saved results to: tst4/external_validation/trans/filter_IG_0.99999/snf
+[INFO] Time = 0.2025s | Memory = 195.8164MB | Peak = 14.2855MB
+
+>>> [External Trans-pca] Classifier: SVM, FS: filter_IG_0.99999
+[DEBUG] ExternalCV.split called: will yield one fold with 50 train and 316 test samples
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.16it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.16it/s]
+[DEBUG] save_outputs [trans-pca] clf=SVM, FS=filter_IG_0.99999: prediction_df shape = (316, 5)
+[DEBUG] save_outputs [trans-pca] clf=SVM, FS=filter_IG_0.99999 - TrueLabel:
+        dtype       = int64
+        n_samples   = 316
+        n_unique    = 2
+        uniques[:10] = [0, 1]
+        value_counts (top 10) = {0: 262, 1: 54}
+[DEBUG] save_outputs [trans-pca] clf=SVM, FS=filter_IG_0.99999: detected prob_cols = ['Prob_Class0', 'Prob_Class1']
+[DEBUG] save_outputs [trans-pca] clf=SVM, FS=filter_IG_0.99999: manual accuracy from prob_cols = 0.170886
+[DEBUG] save_outputs [trans-pca] clf=SVM, FS=filter_IG_0.99999: manual accuracy if flipped (1 - y_pred) = 0.829114
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.085030
+[DEBUG] Metrics [trans-pca] clf=SVM, FS=filter_IG_0.99999: accuracy=0.170886, auc=0.08503, TotalTime_sec=0.2008, PeakMemory_MB=0.845
+[INFO] Saved results to: tst4/external_validation/trans/filter_IG_0.99999/pca
+[INFO] Time = 0.2008s | Memory = 195.8164MB | Peak = 0.845MB
+
+>>> [External Trans-rbf] Classifier: SVM, FS: filter_IG_0.99999
+[DEBUG] ExternalCV.split called: will yield one fold with 50 train and 316 test samples
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.45it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.44it/s]
+[DEBUG] save_outputs [trans-rbf] clf=SVM, FS=filter_IG_0.99999: prediction_df shape = (316, 5)
+[DEBUG] save_outputs [trans-rbf] clf=SVM, FS=filter_IG_0.99999 - TrueLabel:
+        dtype       = int64
+        n_samples   = 316
+        n_unique    = 2
+        uniques[:10] = [0, 1]
+        value_counts (top 10) = {0: 262, 1: 54}
+[DEBUG] save_outputs [trans-rbf] clf=SVM, FS=filter_IG_0.99999: detected prob_cols = ['Prob_Class0', 'Prob_Class1']
+[DEBUG] save_outputs [trans-rbf] clf=SVM, FS=filter_IG_0.99999: manual accuracy from prob_cols = 0.784810
+[DEBUG] save_outputs [trans-rbf] clf=SVM, FS=filter_IG_0.99999: manual accuracy if flipped (1 - y_pred) = 0.215190
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.473282
+[DEBUG] Metrics [trans-rbf] clf=SVM, FS=filter_IG_0.99999: accuracy=0.170886, auc=0.473282, TotalTime_sec=0.158, PeakMemory_MB=1.1172
+[INFO] Saved results to: tst4/external_validation/trans/filter_IG_0.99999/rbf
+[INFO] Time = 0.158s | Memory = 195.8164MB | Peak = 1.1172MB
+
+>>> [External Trans-snf] Classifier: SVM, FS: filter_IG_0.99999
+[DEBUG] ExternalCV.split called: will yield one fold with 50 train and 316 test samples
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.16it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.14it/s]
+[DEBUG] save_outputs [trans-snf] clf=SVM, FS=filter_IG_0.99999: prediction_df shape = (316, 5)
+[DEBUG] save_outputs [trans-snf] clf=SVM, FS=filter_IG_0.99999 - TrueLabel:
+        dtype       = int64
+        n_samples   = 316
+        n_unique    = 2
+        uniques[:10] = [0, 1]
+        value_counts (top 10) = {0: 262, 1: 54}
+[DEBUG] save_outputs [trans-snf] clf=SVM, FS=filter_IG_0.99999: detected prob_cols = ['Prob_Class0', 'Prob_Class1']
+[DEBUG] save_outputs [trans-snf] clf=SVM, FS=filter_IG_0.99999: manual accuracy from prob_cols = 0.170886
+[DEBUG] save_outputs [trans-snf] clf=SVM, FS=filter_IG_0.99999: manual accuracy if flipped (1 - y_pred) = 0.829114
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.236429
+[DEBUG] Metrics [trans-snf] clf=SVM, FS=filter_IG_0.99999: accuracy=0.170886, auc=0.236429, TotalTime_sec=0.2008, PeakMemory_MB=14.2056
+[INFO] Saved results to: tst4/external_validation/trans/filter_IG_0.99999/snf
+[INFO] Time = 0.2008s | Memory = 195.4375MB | Peak = 14.2056MB
+[DEBUG] Merged predictions saved to tst4/external_validation/trans/filter_IG_0.99999/pca/all_classifiers_predictions.csv
+[DEBUG] Merged metrics saved to tst4/external_validation/trans/filter_IG_0.99999/pca/all_classifiers_metrics.csv
+[DEBUG] Merged predictions saved to tst4/external_validation/trans/filter_IG_0.99999/rbf/all_classifiers_predictions.csv
+[DEBUG] Merged metrics saved to tst4/external_validation/trans/filter_IG_0.99999/rbf/all_classifiers_metrics.csv
+[DEBUG] Merged predictions saved to tst4/external_validation/trans/filter_IG_0.99999/snf/all_classifiers_predictions.csv
+[DEBUG] Merged metrics saved to tst4/external_validation/trans/filter_IG_0.99999/snf/all_classifiers_metrics.csv
+[DEBUG] Merged all-method predictions saved to tst4/external_validation/trans/filter_IG_0.99999/all_methods_all_classifiers_predictions.csv
+[DEBUG] Merged all-method metrics saved to tst4/external_validation/trans/filter_IG_0.99999/all_methods_all_classifiers_metrics.csv
+
+[INFO] External validation finished. Results are under 'external_validation' folder.

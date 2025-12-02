@@ -24,10 +24,6 @@ Fusion methods:
 - trans: PCA, kernels (linear, rbf, poly, sigmoid), SNF
 
 Usage example:
-1. generate npy cache to increase operation speed
-python generate_npy_cache.py --input_dir /home/zjp/projects/202402_cfDNAIntegratedTool/250402_downstream_result/two-class/01preprocessing/0317_format_var_std/CNA --cache_dir /home/zky/projects/202312_cfDNA_integrated_tools/2504DA-npy/testdata
-
-2. run the main script
 nohup python run_multi_modality.py \
   --modality multi \
   --input_dir /home/zky/projects/202312_cfDNA_integrated_tools/2504DA-figure/multi-modality/multi-class/input \
@@ -35,19 +31,9 @@ nohup python run_multi_modality.py \
   --model_method average weighted stack \
   --trans_method pca rbf snf \
   --classifierMulti KNN SVM \
-  --cvMulti LOO \
-  --nsplitMulti 5 \
-  --filterMethod IG CHI FS FCBF CC LVF MAD DR MI RLF SURF MSURF \
-  --filterFrac 0.023618328 \
-  --wrapperMethod BOR \
-  --wrapperFrac 0.023618328 \
-  --embeddedMethod LASSO RIDGE ELASTICNET RF \
-  --embeddedFrac 0.023618328 \
-  --hybridType FE \
-  --hybridMethod1 IG \
-  --hybridFrac1 0.023618328 \
-  --hybridMethod2 LASSO \
-  --hybridFrac2 0.023618328\
+  --cvMulti Independent \
+  --filterMethod IG \
+  --filterFrac 0.99999 \
   --DA_output_dir /home/zky/projects/202312_cfDNA_integrated_tools/2504DA-figure/multi-modality/multi-classs/results > multi_modality-multiclass.out 2>&1 &
 """
 #!/usr/bin/env python3
@@ -237,7 +223,8 @@ def run_multi_modality_analysis(modality_names, modality_data, args):
                     if ys is None:
                         ys = mdata["y"]
                         sample_ids = mdata["sample_ids"]
-                cv = get_cv(args.cvMulti, args.nsplitMulti, ys)
+                #cv = get_cv(args.cvMulti, args.nsplitMulti, ys)
+                cv = get_cv(method=args.cvMulti, nsplit=args.nsplitMulti, y=ys, test_ratio=args.cvMulti_test_ratio)
 
                 # -------- Concat --------
                 if fusion_type == "concat":

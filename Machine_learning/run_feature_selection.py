@@ -145,6 +145,19 @@ def run_feature_selection(X, y, args, fs_type=None, verbose=True, fs_tag="modali
             if method not in FILTER_METHODS:
                 raise ValueError(f"[filter] Unsupported method: {method}")
             ranked = FILTER_METHODS[method](X, y)
+
+            scores = [score for _, score in ranked]
+            if scores:  
+                unique_scores = set(round(s, 10) for s in scores)
+                if len(unique_scores) == 1:
+                    only_score = next(iter(unique_scores))
+                    print(
+                        f"[WARN][{fs_tag}] filter method={method}: "
+                        f"all feature scores are identical (score={only_score:.4g}). "
+                        "Top-K selection will depend only on feature order (X.columns); "
+                        "you may want to check this FS method or parameters."
+                    )
+
             # k = int(len(ranked) * args.filterFrac)
             if ( args.filterFrac >= 1) or (isinstance(args.filterFrac, (int, float)) and 0 < args.filterFrac < 1):
                 if ( args.filterFrac >= 1):
@@ -164,6 +177,19 @@ def run_feature_selection(X, y, args, fs_type=None, verbose=True, fs_tag="modali
             if method not in EMBEDDED_METHODS:
                 raise ValueError(f"[filter] Unsupported method: {method}")
             ranked = EMBEDDED_METHODS[method](X, y)
+
+            scores = [score for _, score in ranked]
+            if scores:  
+                unique_scores = set(round(s, 10) for s in scores)
+                if len(unique_scores) == 1:
+                    only_score = next(iter(unique_scores))
+                    print(
+                        f"[WARN][{fs_tag}] filter method={method}: "
+                        f"all feature scores are identical (score={only_score:.4g}). "
+                        "Top-K selection will depend only on feature order (X.columns); "
+                        "you may want to check this FS method or parameters."
+                    )
+                    
             # k = int(len(ranked) * args.embeddedFrac)
             if ( args.embeddedFrac >= 1) or (isinstance(args.embeddedFrac, (int, float)) and 0 < args.embeddedFrac < 1):
                 if (args.embeddedFrac >= 1):
@@ -209,10 +235,35 @@ def run_feature_selection(X, y, args, fs_type=None, verbose=True, fs_tag="modali
         
 
         ranked1 = FILTER_METHODS[method1](X, y)
+
+        scores1 = [score for _, score in ranked1]
+        if scores1:
+            unique_scores1 = set(round(s, 10) for s in scores1)
+            if len(unique_scores1) == 1:
+                only_score1 = next(iter(unique_scores1))
+                print(
+                    f"[WARN][{fs_tag}] hybrid step1 (filter) method={method1}: "
+                    f"all feature scores are identical (score={only_score1:.4g}). "
+                    "Top-K selection in step1 will depend only on feature order (X.columns)."
+                )
+
         top_feats = [f for f, _ in ranked1[:k1]]
 
+        
         if fs_type == 'FE':
             ranked2 = EMBEDDED_METHODS[method2](X[top_feats], y)
+
+            scores2 = [score for _, score in ranked2]
+            if scores2:
+                unique_scores2 = set(round(s, 10) for s in scores2)
+                if len(unique_scores2) == 1:
+                    only_score2 = next(iter(unique_scores2))
+                    print(
+                        f"[WARN][{fs_tag}] hybrid step2 (embedded) method={method2}: "
+                        f"all feature scores are identical (score={only_score2:.4g}). "
+                        "Top-K selection in step2 will depend only on feature order (top_feats)."
+                    )
+
             selected_features = [f for f, _ in ranked2[:k2]]
         else:
             selected_features = WRAPPER_METHODS[method2](X[top_feats], y)

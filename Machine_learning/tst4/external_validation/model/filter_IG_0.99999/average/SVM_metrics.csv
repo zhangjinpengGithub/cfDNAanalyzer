@@ -1,0 +1,2 @@
+FusionType,FusionMethod,FS_Combination,Classifier,accuracy,precision,recall,sensitivity,specificity,f1,auc,TotalTime_sec,FinalMemory_MB,PeakMemory_MB
+model,average,filter_IG_0.99999,SVM,0.829114,0.0,0.0,0.0,1.0,0.0,0.255973,0.1807,194.75,0.7079

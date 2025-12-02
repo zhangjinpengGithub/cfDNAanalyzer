@@ -1,0 +1,56 @@
+nohup: ignoring input
+IPython could not be loaded!
+
+===== Parameters Summary =====
+noDA: False
+modality: single
+input_dir: /home/keyao/251014_tst_cfdna/tst_multi_EMR
+filterMethod: ['FS']
+filterFrac: 1.0
+wrapperMethod: None
+wrapperFrac: 0.2
+embeddedMethod: None
+embeddedFrac: 0.2
+hybridType: None
+hybridMethod1: None
+hybridMethod2: None
+hybridFrac1: 0.2
+hybridFrac2: 0.2
+classNum: 3
+cvSingle: Independent
+cvSingle_test_ratio: 0.2
+nsplitSingle: 5
+classifierSingle: ['SVM']
+cvMulti: LOO
+cvMulti_test_ratio: 0.2
+nsplitMulti: 5
+classifierMulti: None
+fusion_type: None
+model_method: None
+trans_method: None
+explain: ['SHAP', 'perm']
+DA_output_dir: tst1
+================================
+
+[INFO] No cached .npz found, loading from .csv files.
+
+===== Processing single modality: std_filtered_EMR_format_remerged_FS_selected =====
+
+>>> Running classifier: SVM with FS combo: filter_FS_1.0
+  0%|          | 0/1 [00:00<?, ?it/s][INFO] Computing permutation importance...
+[INFO] Saved permutation importance to tst1/std_filtered_EMR_format_remerged_FS_selected/model_explain/filter_FS_1.0/SVM/fold_0/permutation_importance.csv
+[INFO] Computing SHAP values...
+
+  0%|          | 0/19 [00:00<?, ?it/s][A100%|██████████| 19/19 [00:00<00:00, 381.06it/s]
+100%|██████████| 1/1 [00:01<00:00,  1.37s/it]100%|██████████| 1/1 [00:01<00:00,  1.37s/it]
+[INFO] Saved SHAP values to tst1/std_filtered_EMR_format_remerged_FS_selected/model_explain/filter_FS_1.0/SVM/fold_0/shap_values.csv
+Accuracy: 0.263158
+Precision (macro): 0.158730
+Recall (macro): 0.203704
+F1 Score (macro): 0.178266
+Sensitivity (macro): 0.203704
+Specificity (macro): 0.579487
+Saved prediction results to: tst1/std_filtered_EMR_format_remerged_FS_selected/single_modality_probabilities.csv
+Saved performance summary to: tst1/std_filtered_EMR_format_remerged_FS_selected/single_modality_metrics.csv
+Saved merged explain summary to tst1/std_filtered_EMR_format_remerged_FS_selected/single_modality_model_explain.csv
+Removed intermediate explain files under tst1/std_filtered_EMR_format_remerged_FS_selected/model_explain

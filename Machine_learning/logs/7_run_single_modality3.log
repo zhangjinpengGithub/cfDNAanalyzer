@@ -1,0 +1,74 @@
+nohup: ignoring input
+IPython could not be loaded!
+
+===== Parameters Summary =====
+noDA: False
+modality: single
+input_dir: /home/keyao/251014_tst_cfdna/EM
+filterMethod: ['FCBF']
+filterFrac: 50.0
+wrapperMethod: None
+wrapperFrac: 0.2
+embeddedMethod: None
+embeddedFrac: 0.2
+hybridType: None
+hybridMethod1: None
+hybridMethod2: None
+hybridFrac1: 0.2
+hybridFrac2: 0.2
+classNum: 2
+cvSingle: KFold
+nsplitSingle: 5
+classifierSingle: ['LogisticRegression']
+cvMulti: LOO
+nsplitMulti: 5
+classifierMulti: None
+fusion_type: None
+model_method: None
+trans_method: None
+explain: ['SHAP', 'perm']
+DA_output_dir: ./output3/7
+================================
+
+[INFO] No cached .npz found, loading from .csv files.
+
+===== Processing single modality: std_filtered_EM_merged =====
+
+>>> Running classifier: LogisticRegression with FS combo: filter_FCBF_50.0
+  0%|          | 0/5 [00:00<?, ?it/s][WARN] Filter FS method FCBF: all feature importance scores are identical (0.3163591818734184). Selecting ALL features.
+[WARN] Filter FS method FCBF: all feature importance scores are identical (0.3163591818734184). Selecting ALL features.
+[INFO] Computing permutation importance...
+[INFO] Computing permutation importance...
+[WARN] Filter FS method FCBF: all feature importance scores are identical (0.3163591818734184). Selecting ALL features.
+[INFO] Computing permutation importance...
+[WARN] Filter FS method FCBF: all feature importance scores are identical (0.3163591818734184). Selecting ALL features.
+[INFO] Computing permutation importance...
+[WARN] Filter FS method FCBF: all feature importance scores are identical (0.3163591818734184). Selecting ALL features.
+[INFO] Computing permutation importance...
+ 20%|██        | 1/5 [00:22<01:31, 22.99s/it] 40%|████      | 2/5 [00:23<00:29,  9.84s/it] 60%|██████    | 3/5 [00:25<00:12,  6.24s/it]100%|██████████| 5/5 [00:25<00:00,  2.75s/it]100%|██████████| 5/5 [00:25<00:00,  5.14s/it]
+[INFO] Saved permutation importance to ./output3/7/std_filtered_EM_merged/model_explain/filter_FCBF_50.0/LogisticRegression/fold_4/permutation_importance.csv
+[INFO] Computing SHAP values...
+[INFO] Saved SHAP values to ./output3/7/std_filtered_EM_merged/model_explain/filter_FCBF_50.0/LogisticRegression/fold_4/shap_values.csv
+[INFO] Saved permutation importance to ./output3/7/std_filtered_EM_merged/model_explain/filter_FCBF_50.0/LogisticRegression/fold_2/permutation_importance.csv
+[INFO] Computing SHAP values...
+[INFO] Saved SHAP values to ./output3/7/std_filtered_EM_merged/model_explain/filter_FCBF_50.0/LogisticRegression/fold_2/shap_values.csv
+[INFO] Saved permutation importance to ./output3/7/std_filtered_EM_merged/model_explain/filter_FCBF_50.0/LogisticRegression/fold_1/permutation_importance.csv
+[INFO] Computing SHAP values...
+[INFO] Saved permutation importance to ./output3/7/std_filtered_EM_merged/model_explain/filter_FCBF_50.0/LogisticRegression/fold_3/permutation_importance.csv
+[INFO] Computing SHAP values...
+[INFO] Saved SHAP values to ./output3/7/std_filtered_EM_merged/model_explain/filter_FCBF_50.0/LogisticRegression/fold_1/shap_values.csv
+[INFO] Saved SHAP values to ./output3/7/std_filtered_EM_merged/model_explain/filter_FCBF_50.0/LogisticRegression/fold_3/shap_values.csv
+[INFO] Saved permutation importance to ./output3/7/std_filtered_EM_merged/model_explain/filter_FCBF_50.0/LogisticRegression/fold_0/permutation_importance.csv
+[INFO] Computing SHAP values...
+[INFO] Saved SHAP values to ./output3/7/std_filtered_EM_merged/model_explain/filter_FCBF_50.0/LogisticRegression/fold_0/shap_values.csv
+Accuracy: 0.860000
+Precision: 0.875000
+Recall: 0.840000
+F1 Score: 0.857143
+Sensitivity: 0.840000
+Specificity: 0.880000
+AUC: 0.944000
+Saved prediction results to: ./output3/7/std_filtered_EM_merged/single_modality_probabilities.csv
+Saved performance summary to: ./output3/7/std_filtered_EM_merged/single_modality_metrics.csv
+Saved merged explain summary to ./output3/7/std_filtered_EM_merged/single_modality_model_explain.csv
+Removed intermediate explain files under ./output3/7/std_filtered_EM_merged/model_explain

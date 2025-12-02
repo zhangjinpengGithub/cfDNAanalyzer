@@ -1,0 +1,48 @@
+nohup: ignoring input
+
+===== Parameters Summary =====
+noDA: False
+modality: multi
+input_dir: /home/keyao/251014_tst_cfdna/tst_ml_data_multiclass
+filterMethod: ['IG']
+filterFrac: 0.023618328
+wrapperMethod: None
+wrapperFrac: 0.2
+embeddedMethod: None
+embeddedFrac: 0.2
+hybridType: None
+hybridMethod1: None
+hybridMethod2: None
+hybridFrac1: 0.2
+hybridFrac2: 0.2
+classNum: 3
+cvSingle: LOO
+cvSingle_test_ratio: 0.2
+nsplitSingle: 5
+classifierSingle: None
+cvMulti: Independent
+cvMulti_test_ratio: 0.2
+nsplitMulti: 5
+classifierMulti: ['KNN']
+fusion_type: ['concat']
+model_method: None
+trans_method: None
+explain: []
+DA_output_dir: tst2
+================================
+
+Loading .csv files from /home/keyao/251014_tst_cfdna/tst_ml_data_multiclass
+Loaded modalities: ['std_filtered_EM_merged_multi_class', 'std_filtered_NP_merged_multi_class']
+
+Fusing modalities using: concat
+
+>>> [Concat] Classifier: KNN, FS: filter_IG_0.023618328
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:01<00:00,  1.88s/it]Processing folds: 100%|██████████| 1/1 [00:01<00:00,  1.88s/it]
+Accuracy: 0.736842
+Precision (macro): 0.783069
+Recall (macro): 0.731481
+F1 Score (macro): 0.750102
+Sensitivity (macro): 0.731481
+Specificity (macro): 0.856410
+Saved results to: tst2/concat/filter_IG_0.023618328/concat
+Time = 1.8901s | Memory = 222.418MB | Peak = 1.4094MB

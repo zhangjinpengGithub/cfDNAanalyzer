@@ -1,6 +1,3 @@
-# nohup python Data_transformation.py --config ~/projects/202402_cfDNAIntegratedTool/250402_downstream_result/two-class/01preprocessing/config_all_feature_complete.json --root ~/projects/202402_cfDNAIntegratedTool/250402_downstream_result/two-class/data/all_data_complete --output ~/projects/202402_cfDNAIntegratedTool/250402_downstream_result/two-class/01preprocessing/Data_transformation > ./Data_transformation.log &
-
-
 import os
 import glob
 import csv
@@ -8,6 +5,7 @@ import sys
 import argparse
 import logging
 import json
+import pandas as pd
 
 def convert_tsv_to_txt(root_dir):
     tsv_files = glob.glob(os.path.join(root_dir, '**', '*.tsv'), recursive=True)
@@ -288,6 +286,42 @@ def process_sample_feature(sample_name, label, feature, details, small_features,
                 row.append("NA")
         writer.writerow(row)
 
+def remove_all_na_samples(csv_file):
+    """删除所有特征值都是NA的样本行"""
+    try:
+        # 读取CSV文件
+        df = pd.read_csv(csv_file)
+        
+        if df.empty:
+            return df
+        
+        # 找出特征列（排除sample和label列）
+        feature_columns = [col for col in df.columns if col not in ['sample', 'label']]
+        
+        if not feature_columns:
+            return df
+        
+        # 标记哪些行所有特征都是NA
+        all_na_mask = df[feature_columns].isna().all(axis=1) | (df[feature_columns] == 'NA').all(axis=1)
+        
+        # 删除所有特征都是NA的行
+        rows_before = len(df)
+        df_cleaned = df[~all_na_mask]
+        rows_after = len(df_cleaned)
+        
+        if rows_before > rows_after:
+            print(f"  Removed {rows_before - rows_after} all-NA samples from {csv_file}")
+            
+            # 保存清理后的文件
+            df_cleaned.to_csv(csv_file, index=False)
+            return df_cleaned
+        else:
+            return df
+            
+    except Exception as e:
+        print(f"Error processing {csv_file}: {e}")
+        return None
+
 def main():
     args = parse_arguments()
 
@@ -305,24 +339,43 @@ def main():
     for feature, details in config.items():
         print(f"Processing feature: {feature}")
         sample_to_small_features = {}
+        valid_samples = []  # 记录有该feature的样本
+        
         for sample_name in labels_dict.keys():
             small_features = collect_small_features_per_sample(feature, details, sample_name, ROOT_DIR)
             sample_to_small_features[sample_name] = small_features
+            # 如果样本有该feature，添加到valid_samples
+            if small_features or details['type'] == 'single':
+                valid_samples.append(sample_name)
 
-        if sample_to_small_features:
-            all_small_features = set.intersection(*sample_to_small_features.values())
+        # 修改这里的逻辑：使用所有样本的交集，或者至少使用有该feature的样本的交集
+        if valid_samples:
+            # 只使用有该feature的样本的交集
+            valid_features_sets = [sample_to_small_features[sample] for sample in valid_samples]
+            if valid_features_sets:
+                all_small_features = set.intersection(*valid_features_sets)
+            else:
+                all_small_features = set()
         else:
             all_small_features = set()
 
+        # 即使没有small features，对于single类型的feature仍然继续
         if not all_small_features and details['type'] != 'single':
-            print(f"Feature {feature} has no common small features, skipping CSV creation.")
-            continue
+            print(f"Feature {feature} has no common small features, but will continue with NA values.")
+            all_small_features = set()  # 设为空集但继续处理
 
         write_headers(feature, all_small_features, details, OUTPUT_DIR)
 
+        # 处理所有样本，包括那些没有该feature的样本
         for sample_name, label in labels_dict.items():
             print(f"  Processing sample: {sample_name}")
             process_sample_feature(sample_name, label, feature, details, all_small_features, ROOT_DIR, OUTPUT_DIR)
+        
+        # 在每个feature处理完成后，删除所有特征值都是NA的样本
+        csv_file = os.path.join(OUTPUT_DIR, f"{feature}.csv")
+        if os.path.exists(csv_file):
+            print(f"  Cleaning all-NA samples from {feature}.csv")
+            remove_all_na_samples(csv_file)
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Integrate feature coverage into individual CSV files.")

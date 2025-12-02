@@ -1,0 +1,48 @@
+IPython could not be loaded!
+
+===== Parameters Summary =====
+noDA: False
+modality: multi
+input_dir: /home/keyao/251014_tst_cfdna/EM
+filterMethod: ['IG']
+filterFrac: 0.99999
+wrapperMethod: None
+wrapperFrac: 0.2
+embeddedMethod: None
+embeddedFrac: 0.2
+hybridType: None
+hybridMethod1: None
+hybridMethod2: None
+hybridFrac1: 0.2
+hybridFrac2: 0.2
+classNum: 2
+cvSingle: Independent
+cvSingle_test_ratio: 0.2
+nsplitSingle: 5
+classifierSingle: ['KNN', 'SVM']
+cvMulti: LOO
+cvMulti_test_ratio: 0.2
+nsplitMulti: 5
+classifierMulti: None
+fusion_type: None
+model_method: None
+trans_method: None
+explain: []
+DA_output_dir: /home/keyao/251014_tst_cfdna/Machine_learning_1126_yjq/tst3
+================================
+
+[INFO] No cached .npz found, loading from .csv files.
+
+===== Processing single modality: std_filtered_EM_merged =====
+
+>>> Running classifier: KNN with FS combo: filter_IG_0.99999
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  3.05it/s]100%|██████████| 1/1 [00:00<00:00,  3.04it/s]
+[INFO] Saved trained model to: /home/keyao/251014_tst_cfdna/Machine_learning_1126_yjq/tst3/std_filtered_EM_merged/filter_IG_0.99999/models/KNN/final_model.joblib
+[INFO] cvSingle=Independent: only trained final model for KNN, FS=filter_IG_0.99999; no internal predictions/metrics.
+
+>>> Running classifier: SVM with FS combo: filter_IG_0.99999
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  3.07it/s]100%|██████████| 1/1 [00:00<00:00,  3.07it/s]
+[INFO] Saved trained model to: /home/keyao/251014_tst_cfdna/Machine_learning_1126_yjq/tst3/std_filtered_EM_merged/filter_IG_0.99999/models/SVM/final_model.joblib
+[INFO] cvSingle=Independent: only trained final model for SVM, FS=filter_IG_0.99999; no internal predictions/metrics.
+[INFO] No internal prediction results to save (maybe Independent mode only).
+[INFO] No internal metrics to save (maybe Independent mode only).

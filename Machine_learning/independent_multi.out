@@ -1,0 +1,216 @@
+
+===== Parameters Summary =====
+noDA: False
+modality: multi
+input_dir: ./train_data/raw_two/raw_no_stand/std_train
+filterMethod: ['IG']
+filterFrac: 0.99999
+wrapperMethod: None
+wrapperFrac: 0.2
+embeddedMethod: None
+embeddedFrac: 0.2
+hybridType: None
+hybridMethod1: None
+hybridMethod2: None
+hybridFrac1: 0.2
+hybridFrac2: 0.2
+classNum: 2
+cvSingle: LOO
+cvSingle_test_ratio: 0.2
+nsplitSingle: 5
+classifierSingle: None
+cvMulti: Independent
+cvMulti_test_ratio: 0.2
+nsplitMulti: 5
+classifierMulti: ['KNN', 'SVM']
+fusion_type: ['concat', 'model', 'trans']
+model_method: ['average', 'weighted', 'stack']
+trans_method: ['pca', 'rbf', 'snf']
+external_input_dir: ./test_data/new_two/std_test
+explain: []
+DA_output_dir: tst4
+================================
+
+[INFO] Loading .csv files from ./train_data/raw_two/raw_no_stand/std_train
+[INFO] Loaded training modalities: ['EM', 'NP']
+[INFO] Loading .csv files from ./test_data/new_two/std_test
+[INFO] Loaded external modalities: ['EM', 'NP']
+
+================ External Validation (Independent) ================
+[INFO] #Train samples = 50, #External samples = 316
+
+[External] Fusing modalities using: concat
+
+>>> [External Concat] Classifier: KNN, FS: filter_IG_0.99999
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.25it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.24it/s]
+Accuracy: 0.174051
+Precision: 0.171429
+Recall: 1.000000
+F1 Score: 0.292683
+Sensitivity: 1.000000
+Specificity: 0.003817
+AUC: 0.413627
+[INFO] Saved results to: tst4/external_validation/concat/filter_IG_0.99999/concat
+[INFO] Time = 0.1677s | Memory = 193.5625MB | Peak = 1.4352MB
+
+>>> [External Concat] Classifier: SVM, FS: filter_IG_0.99999
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.48it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.47it/s]
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.122137
+[INFO] Saved results to: tst4/external_validation/concat/filter_IG_0.99999/concat
+[INFO] Time = 0.1608s | Memory = 197.125MB | Peak = 1.154MB
+
+[External] Fusing modalities using: model
+
+>>> [External Model-average] Classifier: KNN, FS: filter_IG_0.99999
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.22it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.21it/s]
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.266964
+[INFO] Saved results to: tst4/external_validation/model/filter_IG_0.99999/average
+[INFO] Time = 0.2019s | Memory = 197.125MB | Peak = 0.7559MB
+
+>>> [External Model-weighted] Classifier: KNN, FS: filter_IG_0.99999
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.53it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.51it/s]
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.250530
+[INFO] Saved results to: tst4/external_validation/model/filter_IG_0.99999/weighted
+[INFO] Time = 0.1904s | Memory = 197.125MB | Peak = 0.723MB
+
+>>> [External Model-stack] Classifier: KNN, FS: filter_IG_0.99999
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.03it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.01it/s]
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.250530
+[INFO] Saved results to: tst4/external_validation/model/filter_IG_0.99999/stack
+[INFO] Time = 0.1755s | Memory = 197.125MB | Peak = 0.7906MB
+
+>>> [External Model-average] Classifier: SVM, FS: filter_IG_0.99999
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.83it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.81it/s]
+Accuracy: 0.829114
+Precision: 0.000000
+Recall: 0.000000
+F1 Score: 0.000000
+Sensitivity: 0.000000
+Specificity: 1.000000
+AUC: 0.255973
+[INFO] Saved results to: tst4/external_validation/model/filter_IG_0.99999/average
+[INFO] Time = 0.1812s | Memory = 197.125MB | Peak = 0.7081MB
+
+>>> [External Model-weighted] Classifier: SVM, FS: filter_IG_0.99999
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.49it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.47it/s]
+Accuracy: 0.829114
+Precision: 0.000000
+Recall: 0.000000
+F1 Score: 0.000000
+Sensitivity: 0.000000
+Specificity: 1.000000
+AUC: 0.251838
+[INFO] Saved results to: tst4/external_validation/model/filter_IG_0.99999/weighted
+[INFO] Time = 0.1927s | Memory = 197.125MB | Peak = 0.6862MB
+
+>>> [External Model-stack] Classifier: SVM, FS: filter_IG_0.99999
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.96it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.94it/s]
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.250141
+[INFO] Saved results to: tst4/external_validation/model/filter_IG_0.99999/stack
+[INFO] Time = 0.1782s | Memory = 197.125MB | Peak = 0.6904MB
+
+[External] Fusing modalities using: trans
+
+>>> [External Trans-pca] Classifier: KNN, FS: filter_IG_0.99999
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.10it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.09it/s]
+Accuracy: 0.174051
+Precision: 0.171429
+Recall: 1.000000
+F1 Score: 0.292683
+Sensitivity: 1.000000
+Specificity: 0.003817
+AUC: 0.413627
+[INFO] Saved results to: tst4/external_validation/trans/filter_IG_0.99999/pca
+[INFO] Time = 0.2s | Memory = 198.3125MB | Peak = 0.9686MB
+
+>>> [External Trans-rbf] Classifier: KNN, FS: filter_IG_0.99999
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.61it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  6.60it/s]
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.500000
+[INFO] Saved results to: tst4/external_validation/trans/filter_IG_0.99999/rbf
+[INFO] Time = 0.1567s | Memory = 198.3125MB | Peak = 1.3306MB
+
+>>> [External Trans-snf] Classifier: KNN, FS: filter_IG_0.99999
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.16it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.15it/s]
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.500000
+[INFO] Saved results to: tst4/external_validation/trans/filter_IG_0.99999/snf
+[INFO] Time = 0.1994s | Memory = 197.6836MB | Peak = 14.2863MB
+
+>>> [External Trans-pca] Classifier: SVM, FS: filter_IG_0.99999
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.27it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.27it/s]
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.085030
+[INFO] Saved results to: tst4/external_validation/trans/filter_IG_0.99999/pca
+[INFO] Time = 0.1946s | Memory = 197.6836MB | Peak = 0.8452MB
+
+>>> [External Trans-rbf] Classifier: SVM, FS: filter_IG_0.99999
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.24it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.23it/s]
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.473282
+[INFO] Saved results to: tst4/external_validation/trans/filter_IG_0.99999/rbf
+[INFO] Time = 0.1961s | Memory = 197.6836MB | Peak = 1.1174MB
+
+>>> [External Trans-snf] Classifier: SVM, FS: filter_IG_0.99999
+Processing folds:   0%|          | 0/1 [00:00<?, ?it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.13it/s]Processing folds: 100%|██████████| 1/1 [00:00<00:00,  5.13it/s]
+Accuracy: 0.170886
+Precision: 0.170886
+Recall: 1.000000
+F1 Score: 0.291892
+Sensitivity: 1.000000
+Specificity: 0.000000
+AUC: 0.236429
+[INFO] Saved results to: tst4/external_validation/trans/filter_IG_0.99999/snf
+[INFO] Time = 0.1991s | Memory = 198.332MB | Peak = 14.2054MB
+
+[INFO] External validation finished. Results are under 'external_validation' folder.

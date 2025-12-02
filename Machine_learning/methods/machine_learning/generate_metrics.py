@@ -1,4 +1,5 @@
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, classification_report
+from sklearn.metrics import confusion_matrix
 import numpy as np
 
 def evaluate_classification(prediction_df, class_num=2, verbose=True):
@@ -13,6 +14,14 @@ def evaluate_classification(prediction_df, class_num=2, verbose=True):
         recall = recall_score(y_true, y_pred, zero_division=0)
         f1 = f1_score(y_true, y_pred, zero_division=0)
 
+        cm = confusion_matrix(y_true, y_pred)
+        if cm.shape == (2, 2):
+            tn, fp, fn, tp = cm.ravel()
+            sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+            specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
+        else:
+            sensitivity, specificity = np.nan, np.nan
+
         if len(np.unique(y_true)) < 2:
             auc = None
             if verbose:
@@ -25,12 +34,16 @@ def evaluate_classification(prediction_df, class_num=2, verbose=True):
         recall = round(recall, 6)
         f1 = round(f1, 6)
         auc = round(auc, 6) if class_num == 2 and len(set(y_true)) > 1 else None
+        sensitivity = round(sensitivity, 6)
+        specificity = round(specificity, 6)
 
         if verbose:
             print(f"Accuracy: {acc:.6f}")
             print(f"Precision: {precision:.6f}")
             print(f"Recall: {recall:.6f}")
             print(f"F1 Score: {f1:.6f}")
+            print(f"Sensitivity: {sensitivity:.6f}")
+            print(f"Specificity: {specificity:.6f}")
             if auc is not None:
                 print(f"AUC: {auc:.6f}")
 
@@ -38,6 +51,8 @@ def evaluate_classification(prediction_df, class_num=2, verbose=True):
             'accuracy': acc,
             'precision': precision,
             'recall': recall,
+            'sensitivity': sensitivity,
+            'specificity': specificity,
             'f1': f1,
             'auc': auc if auc is not None else "N/A"
         }
@@ -50,20 +65,46 @@ def evaluate_classification(prediction_df, class_num=2, verbose=True):
         precision_macro = precision_score(y_true, y_pred, average='macro', zero_division=0)
         recall_macro = recall_score(y_true, y_pred, average='macro', zero_division=0)
 
+        cm = confusion_matrix(y_true, y_pred, labels=range(class_num))
+        # Sensitivity = recall per class
+        sensitivity_per_class = []
+        specificity_per_class = []
+
+        for i in range(class_num):
+            tp = cm[i, i]
+            fn = cm[i, :].sum() - tp
+            fp = cm[:, i].sum() - tp
+            tn = cm.sum() - (tp + fp + fn)
+
+            sensitivity_i = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+            specificity_i = tn / (tn + fp) if (tn + fp) > 0 else 0.0
+
+            sensitivity_per_class.append(sensitivity_i)
+            specificity_per_class.append(specificity_i)
+
+        sensitivity_macro = np.mean(sensitivity_per_class)
+        specificity_macro = np.mean(specificity_per_class)
+
         acc = round(acc, 6)
         f1_macro = round(f1_macro, 6)
         precision_macro = round(precision_macro, 6)
         recall_macro = round(recall_macro, 6)
+        sensitivity_macro = round(sensitivity_macro, 6)
+        specificity_macro = round(specificity_macro, 6)
 
         if verbose:
             print(f"Accuracy: {acc:.6f}")
             print(f"Precision (macro): {precision_macro:.6f}")
             print(f"Recall (macro): {recall_macro:.6f}")
             print(f"F1 Score (macro): {f1_macro:.6f}")
+            print(f"Sensitivity (macro): {sensitivity_macro:.6f}")
+            print(f"Specificity (macro): {specificity_macro:.6f}")
 
         return {
             'accuracy': acc,
             'precision_macro': precision_macro,
             'recall_macro': recall_macro,
-            'f1_macro': f1_macro
+            'f1_macro': f1_macro,
+            'sensitivity_macro': sensitivity_macro,
+            'specificity_macro': specificity_macro
         }
