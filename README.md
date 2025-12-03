@@ -23,7 +23,7 @@ For detailed guidance on feature visualization, feature selection optimization, 
 
 <li>
   <a href="#Output-files">Output files</a>
-  
+
   <ul>
     <li><a href="#Structure-of-output-directory">Structure of output directory</a></li>
     <li><a href="#Features">Features</a></li>
@@ -54,7 +54,8 @@ Please ensure [<ins>samtools (v1.6)</ins>](https://github.com/samtools/samtools)
 git clone https://github.com/LiymLab/cfDNAanalyzer.git
 chmod a+x -R ./cfDNAanalyzer
 cd cfDNAanalyzer/
-conda create -n cfDNAanalyzer python=3.7.16 parallel jq
+conda create -n cfDNAanalyzer python=3.7.16 
+conda install -c conda-forge parallel jq
 conda activate cfDNAanalyzer
 Rscript install_R_packages.R
 pip install -r requirements.txt
@@ -264,6 +265,24 @@ Transformation-based methods transform each of the omics datasets firstly into g
 | Kernel matrix | Sigmoid Kernel | *sigmoid* | The Sigmoid Kernel projects data using a sigmoid function, similar to neural network activation functions. It supports multi-feature integration by transforming features into formats that highlight threshold-based classifications. | [scikit-learn](https://github.com/jundongl/scikit-feature/tree/master) |
 | Network | Similarity network fusion (SNF) | *snf* | SNF integrates multiple types of data by fusing similarity networks, reinforcing common structural features. It excels in multi-feature integration by constructing a holistic network view, revealing deep insights across combined datasets. | [Wang *et al, Nat. Methods*, 2014](https://www.nature.com/articles/nmeth.2810) |
 
+### 5. Model interpretability
+
+In addition to performance evaluation, cfDNAanalyzer provides **optional model interpretability utilities** to help understand how individual cfDNA features contribute to the predictions of a trained classifier.
+
+Currently, we support two complementary interpretation methods implemented in Python:
+
+- **SHAP values (*SHAP*)**  
+  SHAP (SHapley Additive exPlanations) quantifies the contribution of each feature to the model output for individual samples.  
+  - For tree-based models (e.g., Random Forest, XGBoost), we use `shap.TreeExplainer`.  
+  - For linear models (e.g., Logistic Regression), we use `shap.LinearExplainer`.  
+  - For other models (e.g., SVM, KNN), we use `shap.KernelExplainer` with a sampled background set.  
+  The resulting SHAP value matrix can be used to identify which cfDNA features (e.g., specific genomic regions or fragmentomic signatures) drive the model’s predictions towards the case or control class.
+
+- **Permutation importance (*perm*)**  
+  Permutation importance measures the decrease in model performance when the values of a single feature are randomly permuted in the test set. Features that cause a strong drop in performance are considered more important for the model. This provides a **global**, model-agnostic importance ranking that is easy to interpret.
+
+Both SHAP values and permutation importance are computed **after model training** and can be enabled via a command-line option (see *Options for model interpretability* below). The explanation results are saved as CSV files and can be further visualized or summarized by the user.
+
 ### Usage
 ```ruby
 bash cfDNAanalyzer.sh -I <InputFile> -o <OutputDirectory> -F <Features> [Options]
@@ -316,11 +335,12 @@ bash cfDNAanalyzer.sh -I <InputFile> -o <OutputDirectory> -F <Features> [Options
                 If not provided, the 377 TF binding site lists (cfDNAanalyzer/Griffin/Ref_hg19/sites or cfDNAanalyzer/Griffin/Ref_hg38/sites) from the original Nucleosome Profile paper will be used . 
 
 ----- Options for Promoter Fragmentation Entropy (PFE) -----
-  -T     FILE   A TAB-delimited TSS information file without any header.
-                The file must have six columns: (1) chromosome, (2) 1-base TSS coordinate, (3) gene name, (4) strand (+1/-1) and (5) TSS ID (e.g., for genes with multiple TSS, this could be geneName_1, geneName_2, etc.)
-                If not provided, TSSs (cfDNAanalyzer/Epic-seq/code/priordata/sample_hg19.txt or cfDNAanalyzer/Epic-seq/code/priordata/sample_hg38.txt) from the original Promoter Fragmentation Entropy paper will be used.
-  --PFE  STR    Additional parameter setting for PFE analysis. 
-                The full parameter list is available by running: Rscript cfDNAanalyzer/Epic-seq/code/runEPIC.R -h.[optional]
+  -T     FILE     A TAB-delimited TSS information file without any header.
+                  The file must have six columns: (1) chromosome, (2) 1-base TSS coordinate, (3) gene name, (4) strand (+1/-1) and (5) TSS ID (e.g., for genes with multiple TSS, this could be geneName_1, geneName_2, etc.)
+                  If not provided, TSSs (cfDNAanalyzer/Epic-seq/code/priordata/sample_hg19.txt or cfDNAanalyzer/Epic-seq/code/priordata/sample_hg38.txt) from the original Promoter Fragmentation Entropy paper will be used.
+  --PFEdepth STR  Minimun sequencing depth to filter samples. Default: [500]
+  --PFE  STR      Additional parameter setting for PFE analysis. 
+                  The full parameter list is available by running: Rscript cfDNAanalyzer/Epic-seq/code/runEPIC.R -h.[optional]
 
 ----- Options for TSS Coverage (TSSC) -----
   -u                    INT   Number of base pairs upstream of TSS used for calculating TSSC. Default: [1000]
@@ -371,13 +391,15 @@ bash cfDNAanalyzer.sh -I <InputFile> -o <OutputDirectory> -F <Features> [Options
   
 ----- Options for machine learning model building -----
   --classNum          INT   Number of classification categories (2 or more). Default: [2]
-  --cvSingle          STR   Cross-validation method applied in single modality, options include leave-one-out (LOO) or K-fold (KFold). Default: [LOO]
+  --cvSingle          STR   Method spliting training and testing set applied in single modality, options include leave-one-out (LOO), K-fold cross-validation (KFold), single hold-out method (Single) or setting the whole dataset as testing set (Independent). Default: [LOO]
   --nsplitSingle      INT   Number of folds designated for K-fold cross-validation in single modality. Default: [5]
+  --cvSingle_test_ratio STR Ratio of testing set designated for single hold-out method in single modality. Default: [0.2] 
   --classifierSingle  STR   Classifiers employed in single modality (KNN SVM RandomForest GaussianNB LogisticRegression XGB).
                             Classifiers should be set as a string separated by space in quotes, e.g., 'KNN XGB'.
                             Default: All available classifiers will be applied.
-  --cvMulti           STR   Cross-validation method applied in multiple modalities, options include leave-one-out (LOO) or K-fold (KFold). Default: [LOO]
+  --cvMulti           STR   Method spliting training and testing set applied in multi modalities, options include leave-one-out (LOO), K-fold cross-validation (KFold), single hold-out method (Single) or setting the whole dataset as testing set (Independent). Default: [LOO]
   --nsplitMulti       INT   Number of folds designated for K-fold cross-validation in multiple modalities. Default: [5]
+  --cvMulti_test_ratio STR Ratio of testing set designated for single hold-out method in multi modalities. Default: [0.2] 
   --classifierMulti   STR   Classifiers employed in multiple modalities (KNN SVM RandomForest GaussianNB LogisticRegression XGB).
                             Classifiers should be set as a string separated by space in quotes, e.g., 'KNN XGB'.
                             Default: All available classifiers will be applied.
@@ -389,6 +411,9 @@ bash cfDNAanalyzer.sh -I <InputFile> -o <OutputDirectory> -F <Features> [Options
                             Methods should be set as a string separated by space in quotes, e.g., 'pca linear'. 
                             Default: [pca]
                             The detailed description of each method can be accessed at https://github.com/LiymLab/cfDNAanalyzer.  
+  --explain           STR   Optional model interpretation methods to compute for each trained classifier. (SHAP perm)
+                            Methods should be set as a string separated by space in quotes, e.g. 'SHAP perm'.
+                            Default: No model interpretation.
 ```
 
 ### Run the usage example
@@ -438,6 +463,7 @@ bash cfDNAanalyzer.sh -I ./example/bam_input.txt -F EM,OCF -g hg19 -b ./example/
     ├── single_modality
     │   ├── [FeatureName1]
     │   │   ├── single_modality_metrics.csv
+    │   │   ├── single_modality_model_explain.csv    
     │   │   └── single_modality_probabilities.csv
     │   ├── [FeatureName2]
     │   │   ......
@@ -669,7 +695,17 @@ sample4,0,filter_IG_0.023618328,KNN,0.4,0.6
 sample5,1,filter_IG_0.023618328,KNN,0.6,0.4
 ```
 
+`single_modality_model_explain.csv`  contains a summary table of model interpretability results for each trained classifier. If the `--explain` option is enabled, each row in the model interpretation file summarizes the importance of one feature for a given feature selection combination and classifier across all cross-validation folds:
+
+```r
+FS_Combination,Classifier,Feature,MeanAbsSHAP,MeanStdSHAP,MeanAbsPermImportance,MeanStdPermImportance,SHAP_Fold0,Perm_Fold0
+filter_FS_1.0,SVM,chr19_18941767_18943768,7.304098846218136e-17,,0.0736842105263157,,7.304098846218136e-17,0.0736842105263157
+```
+
+If only one type of explanation is requested (e.g. only SHAP or only perm in --explain), the corresponding columns for the other method may be left empty. These interpretation summaries can be used to rank cfDNA features by importance, inspect their stability across folds, and link predictive performance back to specific genomic or fragmentomic patterns.
+
 #### Multiple Modality/Concatenation based, Multiple Modality/Model based, Multiple Modality/Transformation based
+
 `multiple_modality_metrics.csv` contains the fusion type, fusion method, classifier and feature selection method used, followed by various performance metrics such as accuracy, precision, recall, F1 score, AUC (Area Under the Curve), computation time and memory usage (peak memory).
 
 ```r
@@ -715,7 +751,17 @@ sample3,1,wrapper_BOR_0.021070375,2,KNN,0.0,0.6,0.4
 sample4,1,wrapper_BOR_0.021070375,0,KNN,0.2,0.8,0.0
 ```
 
+`single_modality_model_explain.csv`  contains a summary table of model interpretability results for each trained classifier. If the `--explain` option is enabled, each row in the model interpretation file summarizes the importance of one feature for a given feature selection combination and classifier across all cross-validation folds:
+
+```r
+FS_Combination,Classifier,Feature,MeanAbsSHAP,MeanStdSHAP,MeanAbsPermImportance,MeanStdPermImportance,SHAP_Fold0,Perm_Fold0
+filter_FS_1.0,SVM,chr19_18941767_18943768,7.304098846218136e-17,,0.0736842105263157,,7.304098846218136e-17,0.0736842105263157
+```
+
+If only one type of explanation is requested (e.g. only SHAP or only perm in --explain), the corresponding columns for the other method may be left empty. These interpretation summaries can be used to rank cfDNA features by importance, inspect their stability across folds, and link predictive performance back to specific genomic or fragmentomic patterns.
+
 #### Multiple Modality/Concatenation based, Multiple Modality/Model based, Multiple Modality/Transformation based
+
 `multiple_modality_metrics.csv` contains the fusion type, fusion method, classifier and feature selection method used, followed by various performance metrics such as accuracy, macro-precision, macro-recall, macro-f1 score, computation time and memory usage (peak memory).
 
 ```r
