@@ -1,294 +1,16 @@
-# cfDNAanalyzer
-cfDNAanalyzer (<ins>c</ins>ell-<ins>f</ins>ree <ins>DNA</ins> sequencing data <ins>analyzer</ins>) is a toolkit for cfDNA genomic sequencing data analysis which includes three core modules: <br>
-(1) ***Feature Extraction***, which extracts multiple genomic and fragmentomic features at whole-genome or specific genomic-region levels;<br> 
-(2) ***Feature Processing and Selection***, allowing for refinement and optimization of extracted features, supporting multiple processing and selection methods;<br> 
-(3) ***Machine Learning Model Building***, supporting the development of both single-modality and multiple-modality predictive models for disease detection and classification.<br>
-<br>
+#!/bin/bash
 
-For detailed guidance on feature visualization, feature selection optimization, and machine learning model evaluation in cancer detection/classification, please refer to the [<ins>cfDNAanalyzer tutorial</ins>](https://liymlab.github.io/cfDNAanalyzer/Tutorial/). 
+usage(){
+  cat << EOF
+Description:
+cfDNAanalyzer (cell-free DNA sequencing data analyzer) is a toolkit for cfDNA genomic sequencing data analysis which includes three core modules:
+(1) Feature Extraction, which extracts multiple genomic and fragmentomic features at whole-genome or specific genomic-region levels;
+(2) Feature Processing and Selection, allowing for refinement and optimization of extracted features, suporting multiple processing and selection methods;
+(3) Machine Learning Model Building, supporting the development of both single-modality and multiple-modality predictive models for disease detection and classification.
 
-<summary><h2>Table of Contents</h2></summary>
-<li>
-  <a href="#Description">Description</a>
-
-  <ul>
-    <li><a href="#Environment-requirement-and-installation">Environment requirement and installation</a></li>
-    <li><a href="#Raw-data-processing-optional">Raw data processing (optional)</a></li>
-    <li><a href="#Supported-features">Supported features</a></li>
-    <li><a href="#Supported-feature-processing-methods-and-machine-learning-models">Supported feature processing methods and machine learning models</a></li>
-    <li><a href="#Usage">Usage</a></li>
-    <li><a href="#Run-the-usage-example">Run the usage example</a></li>
-  </ul>
-</li>
-
-<li>
-  <a href="#Output-files">Output files</a>
-
-  <ul>
-    <li><a href="#Structure-of-output-directory">Structure of output directory</a></li>
-    <li><a href="#Features">Features</a></li>
-    <li><a href="#Feature-visualization">Feature visualization</a></li>
-    <li><a href="#Feature-processing-and-selection">Feature processing and selection</a></li>
-    <li><a href="#Two-class-machine-learning-models">Two-class machine learning models</a></li>
-    <li><a href="#Multi-class-machine-learning-models">Multi-class machine learning models</a></li>
-    <li><a href="#Composite-scoring-System">Composite scoring system</a></li>
-  </ul>
-</li>
-
-<li>
-  <a href="#Versions-of-packages-in-our-environment">Versions of packages in our environment</a>
-  <ul>
-    <li><a href="#Python">Python</a></li>
-    <li><a href="#R">R</a></li>
-  </ul>
-</li>
-
-<li>
-  <a href="#Contact">Contact</a>
-</li>
-
-## Description
-### Environment requirement and installation
-Please ensure [<ins>samtools (v1.6)</ins>](https://github.com/samtools/samtools), [<ins>bedtools (v2.27.1)</ins>](https://bedtools.readthedocs.io/en/latest/index.html), and [<ins>deeptools (3.5.1)</ins>](https://github.com/deeptools/deepTools) are in your environment. Then, you can install the toolkit following the steps below ( R(>= 4.3.0), perl(>= v5.34.0), GLIBC(>= 2.34) is required ):
-```ruby
-git clone https://github.com/LiymLab/cfDNAanalyzer.git
-chmod a+x -R ./cfDNAanalyzer
-cd cfDNAanalyzer/
-conda create -n cfDNAanalyzer python=3.7.16 
-conda install -c conda-forge parallel jq
-conda activate cfDNAanalyzer
-Rscript install_R_packages.R
-pip install -r requirements.txt
-```
-**Note:**<br>
-* If you find some packages are missing, you can refer the **Versions of packages in our environment** part for the version information.<br>
-* If you want to extract feature NOF, you must have shared object file **libR.so** in you R library.
-
-<br>
-
-### Raw data processing (optional)
-The input file format for cfDNAanalyzer is BAM. You can generate BAM files from raw sequencing data (FASTQ) using your own pipeline or our built-in script, `Raw_data_processing.sh`, located in the `/cfDNAanalyzer` directory. <br>
-
-**Note:** If using Raw_data_processing.sh, ensure the following software is installed: <br>
-* Trim-galore (for adapter trimming) <br>
-* Bowtie2 or BWA (for alignment)<br>
-* SAMtools (for BAM processing)<br>
-
-#### Usage for Raw_data_processing.sh
-```shell
-bash Raw_data_processing.sh -i <InputFile> -o <OutputDirectory> -t <threads> [Options]
-```
-#### Options:
-```
------General options -----  
-  -I  FILE      A text file containing all input FASTQ files with one FASTQ file per line.
-                FASTQ files must end with "fastq.gz".
-                IF input is pair-end FASTQ files, files should have the same prefix like 'sample_1.fastq.gz, sample_2.fastq.gz'
-  -o  DIR       Output directory for all the results. Default: [./]
-  -s  STR       Sequencing method of input BAM files (single/pair). Default: [pair]
-  -t  INT       Number of threads to use. Default: [1]
+Usage:
+   bash cfDNAanalyzer.sh -I <InputFile> -o <OutputDirectory> -F <Features> [Options]
   
------ Options specific for software Trim-galore -----
-  -q  INT       Trim low-quality ends from reads in addition to adapter removal. Default Phred score: [20].
-  -l  INT       Discard reads that became shorter than length INT (bp) because of either quality or adapter trimming. A value of '0' effectively disables this behaviour. Default: [20].
-
------ Options specific for alignment -----
-  -a  STR       Aligning software to use, Bowtie2 or BWA. Default: [BWA].
-  -r  FILE      Reference genome in FASTA format to bulid index for Bowtie2 or BWA.
-  
------ Options specific for software SAMtools -----
-  -F  INT       only include reads with none of the FLAGS in INT present. Default: [1796].
-  -f  INT       only include reads with all of the FLAGs in INT present. Default: [3].
-  -Q  INT       only include reads with mapping quality >= INT. Default: [20].
-```
-
-### Supported features and feature extraction
-### 1.  Genome-wide features:
-#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.1  <ins>C</ins>opy <ins>N</ins>umber <ins>A</ins>lterations (CNA) ([<ins>Adalsteinsson *et al, Nat. Commun.*, 2017</ins>](https://www.nature.com/articles/s41467-017-00965-y))<br>
-* Copy number alterations comprise deletions or amplifications of a particular region of the genome, with a size as low as a few kilobases up to entire chromosomes. 
-* Copy number alterations were computed using ichorCNA which was incorporated in cfDNAanalyzer without modifications. CNA processing includes a mandatory LOESS-based GC content and mappability bias correction step. Bin size is user-configurable to accommodate varying sequencing depths, following HMMCopy's recommendation of selecting a bin width that ensures at least 200 reads per bin—for instance, ~1000 bp for 30x coverage or ~500,000 bp for single-cell sequencing (0.05x). Further details are available in the HMMCopy utilities repository: https://github.com/shahcompbio/hmmcopy_utils.
-
-#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.2  <ins>E</ins>nd <ins>M</ins>otif frequency and diversity (EM) ([<ins>Lee *et al, PNAS*, 2018</ins>](https://www.pnas.org/doi/abs/10.1073/pnas.1815031116) ; [<ins>Jiang *et al, Cancer Discov.*, 2020</ins>](https://doi.org/10.1158/2159-8290.CD-19-0622))
-* End motifs are the terminal n-nucleotide sequence (4-mer end motif in this toolkit) at each 5′ fragment end of cfDNA molecules. End motif frequency refers to the frequency of all 256 4-mer end motifs.<br>
-* End motif diversity is the normalized Shannon entropy of the categorical distribution of all possible 4-mer end-motifs of all cfDNA fragments.
-*	End motif frequency and diversity were calculated using a custom motif-extraction script by exactly following the definitions in the original studies.
-
-#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.3  <ins>F</ins>ragmentation <ins>P</ins>rofile (FP) ([<ins>Cristiano *et al, Nature*, 2019</ins>](https://doi.org/10.1038/s41586-019-1272-6))
-* Fragmentation profile describes fragmentation patterns of cfDNA across the genome, which is the fraction of short cfDNA fragments (100–150 bp) to long cfDNA fragments (151–220 bp) for each 100kb window across the genome.
-* Fragmentation profiles were implemented using the original source code, with extension to support both hg19 and hg38 genomes. 
-
-### 2.  Region-specific features: 
-#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1  <ins>N</ins>ucleosome <ins>O</ins>ccupancy and <ins>F</ins>uzziness (NOF) ([<ins>Li *et al, Genome Med.*, 2024</ins>](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-023-01280-6))
-* Nucleosome occupancy reflects the frequency with which nucleosomes occupy a given genomic region in a cell population. Nucleosome occupancy for a specific region is calculated as the average occupancy values of all based in this region.<br>
-* Nucleosome fuzziness is defined as the deviation of nucleosome positions within a region in a cell population and could reflect cell heterogeneity at the chromatin level. Nucleosome fuzziness for a specific region is calculated as the average fuzziness of all the nucleosomes whose center is located within the region.<br>
-*	Nucleosome occupancy and fuzziness was directly implemented using the original source code in its published study without modifications.
-
-#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.2 <ins>N</ins>ucleosome <ins>P</ins>rofile (NP) ([<ins>Doebley *et al, Nat. Commun.*, 2022</ins>](https://www.nature.com/articles/s41467-022-35076-w))
-* Nucleosome profile is a composite coverage profile computed as the mean of the GC-corrected cfDNA fragment midpoint coverage across a set of sites (Binding sites sets of 377 transcription factors as the dafalut). For each set of sites, three features are identified from the composite coverage profile:
-   * (1) The average coverage value from ± 30 bp of the central site of each set (central coverage).
-   * (2) The average coverage value from ± 1000 bp of the central site of each set (mean coverage).
-   * (3) The overall nucleosome peak amplitude is calculated by using a Fast Fourier Transform on the window ± 960 bp from the site and taking the amplitude of the 10th frequency term (amplitude).
-* Nucleosome profile were implemented using the original source code, with extension to support both hg19- and hg38-based site list.
-
-#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.3  <ins>W</ins>indowed <ins>P</ins>rotection <ins>S</ins>core (WPS) ([<ins>Snyder *et al, Cell*, 2016</ins>](https://doi.org/10.1016/j.cell.2015.11.050))
-* Windowed protection score is the number of DNA fragments completely spanning a window centered at a given genomic coordinate minus the number of fragments with an endpoint within that same window. WPS can be calculated using long fragments (120–180 bp; 120 bp window) or short fragments (35–80 bp; 16 bp window). The WPS for a specific region is defined as the average WPS of all bases in this region. High WPS values indicate increased protection of DNA from digestion while low values indicate that DNA is unprotected.
-* Windowed protection score was implemented using the original source code, transforming the single-base level calculation to output a region-level WPS for easier downstream interpretation.
-
-#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.4  <ins>O</ins>rientation-aware <ins>C</ins>fDNA <ins>F</ins>ragmentation (OCF) ([<ins>Sun *et al, Genome Res.*, 2019</ins>](https://genome.cshlp.org/content/29/3/418.long))
-* Orientation-aware cfDNA fragmentation is the differences of read densities of the upstream and downstream fragment ends in specific genomic regions.
-* Orientation-aware cfDNA fragmentation retains the original source code, but generalized to enable computation on any user-defined regions through a shell-based workflow.
-
-#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.5  <ins>E</ins>nd <ins>M</ins>otif frequency and diversity for <ins>R</ins>egions (EMR) ([<ins>Serpas *et al, PNAS*, 2018</ins>](https://www.pnas.org/doi/abs/10.1073/pnas.1815031116) ; [<ins>Jiang *et al, Cancer Discov.*, 2020</ins>](https://doi.org/10.1158/2159-8290.CD-19-0622))
-* We introduced end motif frequency and diversity for regions, which is defined as the frequency and diversity of all 256 4-mer end motifs for each region.<br>
-* End motif frequency and diversity for Regions (EMR)12,13 were calculated using a custom motif-extraction script, adhering to the original study definitions for each user-specified region.
-
-#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.6  <ins>F</ins>ragmentation <ins>P</ins>rofile for <ins>R</ins>egions (FPR) ([<ins>Cristiano *et al, Nature*, 2019</ins>](https://doi.org/10.1038/s41586-019-1272-6))
-* We introduced fragmentation profile for regions, which is defined as the fraction of short cfDNA fragments (100–150 bp) to long cfDNA fragments (151–220 bp) for each region.
-*	Fragmentation profiles for regions adapt the FP strategy to user-defined genomic intervals.
-
-### 3.  TSS-based features: 
-#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1 <ins>P</ins>romoter <ins>F</ins>ragmentation <ins>E</ins>ntropy (PFE) ([<ins>Esfahani *et al, Nat. Biotechnol.*, 2022</ins>](https://doi.org/10.1038/s41587-022-01222-4))<br>
-* Promoter fragmentation entropy quantifies the diversity of cfDNA fragment lengths around the TSSs of genes. It is calculated by a modified Shannon index for lengths of cfDNA fragment where both ends fell within ±1 kb of the TSS. Then this cfDNA entropy measure is adjusted using a Dirichlet-multinomial model for normalization. Finally, we Z-score this entropy value for genes in every sample.
-* Promoter fragmentation entropy was implemented using the original source code in its published study without modifications. 
-
-#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.2 <ins>TSS</ins> <ins>C</ins>overage (TSSC) ([<ins>Ulz *et al, Nat. Genet.*, 2016</ins>](https://www.nature.com/articles/ng.3648))
-* TSS coverage refers to the cfDNA sequencing read coverage in the regions surrounding TSSs.
-* TSS coverage was calculated using a custom workflow that integrates deepTools commands to quantify read coverage across promoter regions.
-
-### Supported feature processing methods and machine learning models
-
-### 1. Feature processing 
-
-#### 1.1 Missing data removal
-* In this step, columns containing missing values are removed to ensure the data is ready for downstream analysis.
-
-#### 1.2 Data standardization
-
-* This process transforms the data using one of the following data standardization/normalization method, which is important for many machine-learning techniques. 
-
-| Methods | Alias | Brief Introduction |
-| :---: | :---: | :---: | 
-| Z-Score | *Zscore* | Z-Score scales the features to mean = 0, standard deviation = 1. |
-| Min-Max Scaling | *MMS* | Min-Max Scaling transforms features to a fixed range (typically [0, 1]) by subtracting the minimum value and dividing by the range (max - min). |  
-| Robust Scaling | *RS* | Robust Scaling standardizes data by subtracting the median and dividing by the interquartile range (IQR), making it resistant to outliers. |
-| Quantile Transformation | *QT* | Quantile Transformation non-linearly maps data to a target distribution (e.g., Gaussian or uniform) using quantiles, making the transformed data robust to outliers and strictly follow the desired distribution. |
-
-### 2. Feature selection
-
-Feature selection is an important step in machine learning. It involves removing irrelevant or redundant features based on importance rankings, which can help reduce model complexity and enhance the model's ability to make accurate predictions. Here we provide **four methods (filter, embedded, wrapper, and hybrid methods)** for feature selection ( [<ins>Pudjihartono *et al, Front. Bioinform.*, 2022</ins>](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9580915/)), as follows:
-
-#### 2.1 Filter methods
-
-Filter methods apply statistical tests to assess and rank features for their relevance to the target variable, independent of the classification algorithm. These methods can be executed by computing the correlation between features and the target variable, subsequently eliminating features with low scores.
-
-| Methods | Alias | Brief Introduction | Source |
-| :---: | :---: | :---: | :---:                                                   |
-| Information Gain | *IG* | Information Gain measures the reduction in uncertainty of the target variable when a specific feature is known. Higher information gain indicates a more informative feature for predicting the target variable. | [scikit-learn](https://scikit-learn.org/stable/index.html)                                                 |
-| Chi-square Test | *CHI* | The Chi-square Test evaluates the independence between categorical features and the target variable. Features that show significant association with the target variable are selected based on their Chi-square statistics. | [scikit-learn](https://scikit-learn.org/stable/index.html)                                                 |
-| Fisher's Score | *FS* | Fisher’s Score ranks features according to their ability to distinguish between classes by comparing the mean differences across classes relative to their variances. | [scikit-feature](https://github.com/jundongl/scikit-feature/tree/master) |
-| Fast Correlation Based Filter | *FCBF* | The FCBF method quickly identifies relevant features by analyzing their correlation with the target variable while removing redundant features that contribute little additional information. | [FCBF_module](https://github.com/SantiagoEG/FCBF_module)     |
-| Permutation Importance | *PI* | Permutation Importance assesses the significance of each feature by measuring the drop in model performance when the feature’s values are randomly permuted. Features causing significant degradation in performance are deemed important. | [scikit-learn](https://github.com/jundongl/scikit-feature/tree/master)                                                  |
-| Correlation Coefficient | *CC* | Correlation Coefficient quantifies the linear relationship between features and the target variable. Features with higher correlation coefficients are considered more predictive and are selected for modeling. | [pandas](https://pandas.pydata.org/)                                                       |
-| Low Variance Filter | *LVF* | The Low Variance Filter eliminates features with minimal variability across samples, as such features are unlikely to be useful for distinguishing between classes. | [scikit-learn](https://github.com/jundongl/scikit-feature/tree/master)                                                 |
-| Mean Absolute Difference | *MAD* | Mean Absolute Difference evaluates the average difference in feature values between classes. Features with larger differences are prioritized for greater discriminatory power. | [pandas](https://pandas.pydata.org/)                                                       |
-| Dispersion Ratio | *DR* | Dispersion Ratio assesses the spread or variability of a feature across samples. Features with distinct dispersion patterns across classes are selected as they are likely to contribute to better classification. | [numpy](https://numpy.org/)                                                        |
-| Mutual Information | *MI* | Mutual Information measures the amount of information a feature shares with the target variable. Features with higher mutual information values are more relevant for model inclusion. | [scikit-learn](https://scikit-learn.org/stable/index.html)                                                 |
-| ReliefF | *RLF* | ReliefF identifies features that consistently differentiate between instances of different classes by considering the nearest neighbors of each instance. | [scikit-rebate](https://epistasislab.github.io/scikit-rebate/using/)                                                             |
-| SURF | *SURF* | The SURF variant extends ReliefF by considering all instances within a predefined distance, enhancing its ability to capture more relevant features. | [scikit-rebate](https://epistasislab.github.io/scikit-rebate/using/)                                                             |
-| MultiSURF | *MSURF* | MultiSURF dynamically adjusts the neighborhood size during selection, allowing it to capture complex, multi-feature interactions. | [scikit-rebate](https://epistasislab.github.io/scikit-rebate/using/)                                                             |
-| TuRF | *TRF* | TuRF iteratively removes the least informative features, refining the feature set to focus on those with the highest discriminative power. | [scikit-rebate](https://epistasislab.github.io/scikit-rebate/using/)                                                             |
-#### 2.2 Embedded methods
-
-Embedded methods incorporate feature selection directly into model training, allowing the learning algorithm to determine the most crucial features. Models such as Random Forest and LASSO regression effectively execute these methods, assigning importance to features throughout the learning phase.
-
-| Methods | Alias | Brief Introduction | Source |
-| :---: | :---: | :---: | :---: |
-| Lasso | *LASSO* | Lasso performs feature selection by applying L1 regularization, which encourages sparsity in the model by driving the coefficients of less important features to zero. | [scikit-learn](https://github.com/jundongl/scikit-feature/tree/master) |
-| Ridge | *RIDGE* | Ridge applies L2 regularization, which penalizes large coefficients, thereby reducing the impact of less important features while retaining all features in the model. | [scikit-learn](https://github.com/jundongl/scikit-feature/tree/master) |
-| ElasticNet | *ELASTICNET* | ElasticNet combines the strengths of both Lasso (L1 regularization) and Ridge (L2 regularization), allowing for balanced feature selection with both sparsity and regularization. | [scikit-learn](https://github.com/jundongl/scikit-feature/tree/master) |
-| Random Forest Importance | *RF* | Random Forest Importance ranks features based on their contribution to model accuracy. The method leverages the structure of decision trees to identify the most predictive features during the training process. | [scikit-learn](https://github.com/jundongl/scikit-feature/tree/master) |
-
-#### 2.3 Wrapper methods
-
-Wrapper methods choose features according to their impact on a selected classifier’s performance, systematically seeking the optimal subset of features. This is done by evaluating various feature combinations and identifying the subset that enhances the model’s performance, typically using techniques such as recursive feature elimination.
-
-| Methods | Alias | Brief Introduction | Source |
-| :---: | :---: | :---: | :---: |
-| Forward Feature Selection | *FFS* | Forward Feature Selection starts with an empty model, sequentially adding features that improve model performance until no further gain is achieved. This method builds the optimal feature set step by step. | [mlxtend](https://rasbt.github.io/mlxtend/) |
-| Backward Feature Selection | *BFS* | Backward Feature Selection begins with all features included and iteratively removes the least significant ones. The process continues until the removal of further features results in performance degradation. | [mlxtend](https://rasbt.github.io/mlxtend/) |
-| Exhaustive Feature Selection | *EFS* | Exhaustive Feature Selection evaluates all possible feature combinations, ensuring the identification of the best subset. Though computationally intensive, it provides the most thorough feature selection. | [mlxtend](https://rasbt.github.io/mlxtend/)  |
-| Recursive Feature Selection | *RFS* | Recursive Feature Selection recursively eliminates the least important features, refining the model by retaining only those that contribute the most to prediction accuracy. | [scikit-learn](https://github.com/jundongl/scikit-feature/tree/master) |
-| Boruta Algorithm | *BOR* | The Boruta Algorithm iteratively compares the importance of real features with shuffled versions, selecting all features that consistently prove to be more informative than random noise. | [boruta](https://www.jstatsoft.org/article/view/v036i11) |
-
-#### 2.4 Hybrid methods
-
-Hybrid approaches combine filter with wrapper or embedded methods to leverage their unique advantages. For instance, features are initially filtered using statistical tests, followed by a wrapper method that enhances the selection by examining interactions with the classifier.
-
-| Methods | Alias | Brief Introduction |
-| :---: | :---: | :---: |
-| Filter-Wrapper | *FW* | Filter methods are firstly used to reduce the feature set based on relevance, and then wrapper methods refine the selection to identify the optimal features for the model. |
-| Filter-Embedded | *FE* | Filter methods are firstly used to reduce the feature set based on relevance, and then embedded methods refine the selection to identify the optimal features for the model. |
-
-### 3. Single modality machine learning model
-
-In this section, we will use supervised machine learning to analyze the **individual feature type** of all samples. The classifiers in the toolkit include **Random Forest, K-Nearest Neighbors, Gaussian Naive Bayes, Logistic Regression, Support Vector Machine, and eXtreme Gradient Boosting**. The goal of this approach is to assess how effective each classifier is in accurately identifying disease status based on individual feature type. Our methods are applicable to both **binary and multi-class classification** scenarios.
-
-### 4. Multiple modality machine learning model
-
-This section aims to use **multiple feature types** to improve the model performance. Our toolkit include **Concatenation-based, Model-based, and Transformation-based methods** ([Reel *et al, Biotechnol. Adv.*, 2021](https://www.sciencedirect.com/science/article/abs/pii/S0734975021000458?via%3Dihub/)), applicable to both **binary and multi-class classification** tasks, to maximize model effectiveness across different scenarios. 
-
-#### 4.1 Concatenation-based methods
-
-Concatenation-based methods combine features from different sources by directly appending them into a single feature vector. This straightforward approach allows models to access all available data but relies heavily on the subsequent learning algorithm to handle the potentially high-dimensional space effectively.
-
-#### 4.2 Model-based methods
-
-Model-based integration methods create multiple intermediate models for the different omics data and then build a final model from various intermediate models ([Reel *et al, Biotechnol. Adv.*, 2021](https://www.sciencedirect.com/science/article/abs/pii/S0734975021000458?via%3Dihub/)). It boosts predictive accuracy by utilizing the strengths of individual models, enabling a deeper understanding of the interactions across different layers.
-
-| Methods |  Alias | Brief Introduction | 
-| :---: | :---: | :---: | 
-| Average Voting | *average* | Average Voting combines predictions from multiple models by calculating the mean of their outputs. This method can balance diverse feature impacts, reducing the effect of anomalies in individual features. | 
-| Weighted Voting | *weighted* | Weighted Voting assigns weights to individual model predictions based on their performance, using either their proportion of the total AUC or inversely to their error rates. This strategy prioritizes more reliable features when integrating multiple feature sets, enhancing overall prediction accuracy. | 
-| Majority Voting | *majority* | Majority Voting selects the most common outcome among various model predictions. It ensures robustness by reducing the influence of sporadically erroneous model outputs. | 
-| Stack Ensemble | *stack* | Stack Ensemble uses a meta-model to learn how to best combine the predictions of multiple base models. This method effectively integrates diverse feature-derived predictions to optimize final decision-making processes. | 
-
-#### 4.3 Transformation-based methods
-
-Transformation-based methods transform each of the omics datasets firstly into graphs or kernel matrices and then combine all of them into one before constructing a model ([Reel *et al, Biotechnol. Adv.*, 2021](https://www.sciencedirect.com/science/article/abs/pii/S0734975021000458?via%3Dihub/)). This approach supports the integration of varied data by standardizing how they are represented.
-
-| Category | Methods | Alias | Brief Introduction | Source |
-| :---: | :---: | :---: | :---: | :---: |
-| Dimension reduction | PCA | *pca* | PCA reduces dimensionality by transforming features into a set of linearly uncorrelated components. It simplifies multi-feature integration by focusing on components that explain the most variance, thereby enhancing model efficiency and clarity. | [Subramanian *et al, Bioinform. Biol. Insights*, 2020](https://journals.sagepub.com/doi/full/10.1177/1177932219899051?rfr_dat=cr_pub++0pubmed&url_ver=Z39.88-2003&rfr_id=ori%3Arid%3Acrossref.org) |
-| Kernel matrix | Linear Kernel | *linear* | The Linear Kernel measures direct linear relationships between features. It aids in multi-feature integration by emphasizing linear associations, making it suitable for linearly separable data. | [scikit-learn](https://github.com/jundongl/scikit-feature/tree/master) |
-| Kernel matrix | Polynomial Kernel | *polynomial* | The Polynomial Kernel allows the capture of interactions between features at different degrees of complexity. It enhances multi-feature integration by providing a flexible framework to model nonlinear relationships in the data. | [scikit-learn](https://github.com/jundongl/scikit-feature/tree/master) |
-| Kernel matrix | Radial Basis Function (RBF) Kernel | *rbf* | The RBF Kernel maps features into a higher-dimensional space using a radial basis function, enabling effective classification of non-linearly separable datasets. This kernel is crucial for multi-feature integration as it can handle complex and non-linear interactions between features. | [scikit-learn](https://github.com/jundongl/scikit-feature/tree/master) |
-| Kernel matrix | Sigmoid Kernel | *sigmoid* | The Sigmoid Kernel projects data using a sigmoid function, similar to neural network activation functions. It supports multi-feature integration by transforming features into formats that highlight threshold-based classifications. | [scikit-learn](https://github.com/jundongl/scikit-feature/tree/master) |
-| Network | Similarity network fusion (SNF) | *snf* | SNF integrates multiple types of data by fusing similarity networks, reinforcing common structural features. It excels in multi-feature integration by constructing a holistic network view, revealing deep insights across combined datasets. | [Wang *et al, Nat. Methods*, 2014](https://www.nature.com/articles/nmeth.2810) |
-
-### 5. Model interpretability
-
-In addition to performance evaluation, cfDNAanalyzer provides **optional model interpretability utilities** to help understand how individual cfDNA features contribute to the predictions of a trained classifier.
-
-Currently, we support two complementary interpretation methods implemented in Python:
-
-- **SHAP values (*SHAP*)**  
-  SHAP (SHapley Additive exPlanations) quantifies the contribution of each feature to the model output for individual samples.  
-  - For tree-based models (e.g., Random Forest, XGBoost), we use `shap.TreeExplainer`.  
-  - For linear models (e.g., Logistic Regression), we use `shap.LinearExplainer`.  
-  - For other models (e.g., SVM, KNN), we use `shap.KernelExplainer` with a sampled background set.  
-  The resulting SHAP value matrix can be used to identify which cfDNA features (e.g., specific genomic regions or fragmentomic signatures) drive the model’s predictions towards the case or control class.
-
-- **Permutation importance (*perm*)**  
-  Permutation importance measures the decrease in model performance when the values of a single feature are randomly permuted in the test set. Features that cause a strong drop in performance are considered more important for the model. This provides a **global**, model-agnostic importance ranking that is easy to interpret.
-
-Both SHAP values and permutation importance are computed **after model training** and can be enabled via a command-line option (see *Options for model interpretability* below). The explanation results are saved as CSV files and can be further visualized or summarized by the user.
-
-### Usage
-```ruby
-bash cfDNAanalyzer.sh -I <InputFile> -o <OutputDirectory> -F <Features> [Options]
-```
-#### Options: 
-```
 -------------------- Options for feature extraction --------------------
 
 -----General options -----
@@ -413,623 +135,1197 @@ bash cfDNAanalyzer.sh -I <InputFile> -o <OutputDirectory> -F <Features> [Options
                             The detailed description of each method can be accessed at https://github.com/LiymLab/cfDNAanalyzer.  
   --explain           STR   Optional model interpretation methods to compute for each trained classifier. (SHAP perm)
                             Methods should be set as a string separated by space in quotes, e.g. 'SHAP perm'.
-                            Default: No model interpretation.
-```
+                            Default: No model interpretation.   
+EOF
+    exit 0
+}
 
-### Run the usage example
-You can directly run cfDNAanalyzer by ```cfDNAanalyzer.sh``` provided in the ```cfDNAanalyzer/``` directory with the example files available at Zenodo (DOI: ([<ins>10.5281/zenodo.15295045</ins>](https://doi.org/10.5281/zenodo.13369741))).  
+if [ $# -eq 0 ] || ([ $# -eq 1 ] && { [ "$1" == "-h" ] || [ "$1" == "--help" ]; }); then
+    usage
+fi
 
-```ruby
-bash cfDNAanalyzer.sh -I ./example/bam_input.txt -F EM,OCF -g hg19 -b ./example/test.bed -f ./example/example.fa --labelFile ./example/label.txt --filterMethod 'CHI' --wrapperMethod 'BOR' --embeddedMethod 'LASSO' --classNum 2 --cvSingle LOO --classifierSingle 'KNN' --cvMulti LOO --classifierMulti 'KNN' > ./cfDNAanalyzer.log
-```
+script_path="$(readlink -f "$0")"
+script_dir="$(dirname "$script_path")"
 
-## Output files
-### Structure of output directory
-```shell
-├── Features
-│   ├── CNA.csv
-│   ├── EM_motifs_frequency.csv
-│   ├── EM_motifs_mds.csv
-│   ├── FP_fragmentation_profile.csv
-│   ├── NOF_meanfuziness.csv
-│   ├── NOF_occupancy.csv
-│   ├── NP_amplitude.csv
-│   ├── NP_central_coverage.csv
-│   ├── NP_mean_coverage.csv
-│   ├── NP_mean_coverage.csv
-│   ├── NP_site_list
-│   │   ├── site_list_1.txt
-│   │   ├── site_list_2.txt
-│   │   │   ......
-│   │   └── site_list_N.txt
-│   ├── WPS_long.csv
-│   ├── WPS_short.csv
-│   ├── OCF.csv
-│   ├── EMR_aggregated_motif_frequency.csv
-│   ├── EMR_aggregated_mds.csv
-│   ├── EMR_region_motif_frequency.csv
-│   ├── EMR_region_mds.csv
-│   ├── FPR_fragmentation_profile_regions.csv
-│   ├── PFE.csv
-│   └── TSSC_average_coverage.csv
-├── Feature_Processing_and_Selection
-│   ├── Feature_Processing
-│   │   └── [FeatureName].csv
-│   └── Feature_Selection
-│       ├── [FeatureName]_[embeddedMethod]_selected.csv
-│       ├── [FeatureName]_[filterMethod]_selected.csv
-│       └── [FeatureName]_[wrapperMethod]_selected.csv
-└── Machine_Learning
-    ├── single_modality
-    │   ├── [FeatureName1]
-    │   │   ├── single_modality_metrics.csv
-    │   │   ├── single_modality_model_explain.csv    
-    │   │   └── single_modality_probabilities.csv
-    │   ├── [FeatureName2]
-    │   │   ......
-    │   └── [FeatureNameN]
-    └── multiple_modality
-        ├── Concatenation_based
-        │   ├── multiple_modality_metrics.csv
-        │   └── multiple_modality_probabilities.csv
-        ├── Model_based
-        │   ├── multiple_modality_metrics.csv
-        │   └── multiple_modality_probabilities.csv
-        └── Transformation_based
-            ├── multiple_modality_metrics.csv
-            └── multiple_modality_probabilities.csv
-```
-### Features
-Output files under `Features` directory consist of rows representing different samples. The `sample` column holds the sample's file name, followed by a `label` column that indicates the sample's classification.
+# feature extraction
+inputBamList=""  # -I
+outputDir=$(pwd)   # -o
+Feature=CNA,EM,FP,NOF,NP,WPS,OCF,EMR,FPR,PFE,TSSC  # -F
+genomeVer=hg38  # -g
+fasta=""   # -f
+sequencing=pair  # -s
+bedfiles=""  # -b
+threads=1  # -t
+binsize=1000  # -B
+upstream=1000  # -u
+downstream=1000  # -d
+TSSfile=""  # -S
+Minlength_long=120  # -x
+Maxlength_long=180  # -X
+window_long=120  # -w
+Minlength_short=35  # -m
+Maxlength_short=80  # -M
+window_short=16  # -W
+sitespath=""  # -l
+tssinfo=""  # -T
+normalization="RPKM"  # -n 
+addCNA=""  # --CNA
+addNOF=""  # --NOF
+addbamCoverage=""  # --bamCoverage
+addmultiBigwigSummary=""  # --multiBigwigSummary
+addEpicSeq=""   # --PFE
+PFEdepth="500"
+mt=0
+
+# downstream analysis
+noDA=0
+noML=0
+labelFile=""
+standardM=Zscore
+filterMethod="IG"
+filterNum=0.2
+wrapperMethod="BOR"
+wrapperNum=0.2
+embeddedMethod="LASSO"
+embeddedNum=0.2
+hybridType="FE"
+hybridMethod1=""
+hybridMethod2=""
+hybridNum1=0.2
+hybridNum2=0.2
+classNum=2
+cvSingle=LOO
+nsplitSingle=5
+cvSingle_test_ratio=0.2
+classifierSingle="KNN SVM RandomForest GaussianNB LogisticRegression XGB"
+cvMulti=LOO
+nsplitMulti=5
+cvMulti_test_ratio=0.2
+classifierMulti="KNN SVM RandomForest GaussianNB LogisticRegression XGB"
+modelMethod=average
+transMethod=pca
+explain=''
+
+# Use getopt to handle long options
+TEMP=$(getopt -o hI:o:F:g:f:s:b:t:B:u:d:S:x:X:w:m:M:W:l:T:n: \
+               --long help,CNA:,NOF:,bamCoverage:,multiBigwigSummary:,PFE:,PFEdepth:,mt,noDA,noML,labelFile:,standardM:,filterMethod:,filterNum:,wrapperMethod:,wrapperNum:,embeddedMethod:,embeddedNum:,hybridType:,hybridMethod1:,hybridMethod2:,hybridNum1:,hybridNum2:,classNum:,cvSingle:,nsplitSingle:,cvSingle_test_ratio;,cvMulti_test_ratio:,explain:,classifierSingle:,cvMulti:,nsplitMulti:,classifierMulti:,modelMethod:,transMethod: \
+               -- "$@")
+
+# Check whether getopt succeeded
+if [ $? != 0 ]; then
+    echo "Error in command line parsing." >&2
+    exit 1
+fi
+
+# Reset position parameters
+eval set -- "$TEMP"
+
+# Process options
+while true; do
+    case "$1" in
+        -h|--help)                usage; shift;;
+        -I)                       inputBamList=$2; shift 2;;
+        -o)                       outputDir=$2; shift 2;;
+        -F)                       Feature=$2; shift 2;;
+        -g)                       genomeVer=$2; shift 2;;
+        -f)                       fasta=$2; shift 2;;
+        -s)                       sequencing=$2; shift 2;;
+        -b)                       bedfiles=$2; shift 2;;
+        -t)                       threads=$2; shift 2;;        
+        -B)                       binsize=$2; shift 2;;
+        -u)                       upstream=$2; shift 2;;
+        -d)                       downstream=$2; shift 2;;
+        -S)                       TSSfile=$2; shift 2;;
+        -x)                       Minlength_long=$2; shift 2;;
+        -X)                       Maxlength_long=$2; shift 2;;
+        -w)                       window_long=$2; shift 2;;
+        -m)                       Minlength_short=$2; shift 2;;
+        -M)                       Maxlength_short=$2; shift 2;;
+        -W)                       window_short=$2; shift 2;;
+        -l)                       sitespath=$2; shift 2;;
+        -T)                       tssinfo=$2; shift 2;;
+        -n)                       normalization=$2; shift 2;;        
+        --CNA)                    addCNA=$2; shift 2;;
+        --NOF)                    addNOF=$2; shift 2;;
+        --bamCoverage)            addbamCoverage=$2; shift 2;;
+        --multiBigwigSummary)     addmultiBigwigSummary=$2; shift 2;;
+        --PFE)                    addEpicSeq=$2; shift 2;;
+        --PFEdepth)               PFEdepth=$2; shift 2;;
+        --mt)                     mt=1; shift;;
+        --noDA)                   noDA=1; shift;;
+        --noML)                   noML=1; shift;;
+        --labelFile)              labelFile=$2; shift 2;;
+        --standardM)              standardM=$2; shift 2;;
+        --filterMethod)           filterMethod=$2; shift 2;;
+        --filterNum)              filterNum=$2; shift 2;;
+        --wrapperMethod)          wrapperMethod=$2; shift 2;;
+        --wrapperNum)             wrapperNum=$2; shift 2;;
+        --embeddedMethod)         embeddedMethod=$2; shift 2;;
+        --embeddedNum)            embeddedNum=$2; shift 2;;
+        --hybridType)             hybridType=$2; shift 2;;
+        --hybridMethod1)          hybridMethod1=$2; shift 2;;
+        --hybridMethod2)          hybridMethod2=$2; shift 2;;
+        --hybridNum1)             hybridNum1=$2; shift 2;;
+        --hybridNum2)             hybridNum2=$2; shift 2;;
+        --classNum)               classNum=$2; shift 2;;
+        --cvSingle)               cvSingle=$2; shift 2;;
+        --nsplitSingle)           nsplitSingle=$2; shift 2;;
+        --cvSingle_test_ratio)    cvSingle_test_ratio=$2; shift 2;;
+        --cvMulti_test_ratio)     cvMulti_test_ratio=$2; shift 2;;
+        --classifierSingle)       classifierSingle=$2; shift 2;;
+        --cvMulti)                cvMulti=$2; shift 2;;
+        --nsplitMulti)            nsplitMulti=$2; shift 2;;
+        --classifierMulti)        classifierMulti=$2; shift 2;;
+        --modelMethod)            modelMethod=$2; shift 2;;
+        --transMethod)            transMethod=$2; shift 2;;
+        --explain)                explain=$2; shift 2;;
+        --)                       shift; break;;
+        *)                        echo "Unexpected option: $1"; exit 1;;
+    esac
+done
+
+# Check if jq is installed
+if ! command -v jq &> /dev/null
+then
+    echo "Error: jq is required but not installed. Please install jq and rerun the script."
+    exit 1
+fi
+# You can download ./jq with `sudo apt-get install jq`
+# Reference: https://jqlang.github.io/jq/download/ 
+
+# Main function
+run_analysis() {
+  # Ensure input file list is provided
+  if [ -z "$inputBamList" ]; then
+    echo "Error: Input bam file list is not provided."
+    exit 1
+  fi
+
+  # Create output directory if it doesn't exist
+  mkdir -p "$outputDir"
+
+  # Validate reference type
+  if [[ "$genomeVer" != "hg19" ]] && [[ "$genomeVer" != "hg38" ]]; then
+    echo "Error: Incorrect type of reference fasta file."
+    exit 1
+  fi
+  
+  if { [[ "$Feature" == *"NOF"* ]] || [[ "$Feature" == *"NP"* ]] || [[ "$Feature" == *"WPS"* ]] || [[ "$Feature" == *"OCF"* ]] || [[ "$Feature" == *"EMR"* ]] || [[ "$Feature" == *"FPR"* ]]; } && [ -z "$bedfiles" ]; then
+      echo "Error: A BED3 file specifying the regions (-b) is not provided."
+      exit 1
+  fi
+
+  # Convert relative paths to absolute paths
+  inputBamList=$(realpath "$inputBamList")
+  outputDir=$(realpath "$outputDir")
+  if [ -n "$fasta" ]; then
+    fasta=$(realpath "$fasta")
+  fi
+  
+  if [ -n "$bedfiles" ]; then
+    bedfiles=$(realpath "$bedfiles")
+  fi  
+    
+  if [[ "$mt" == 1 ]];then
+    grep -E "^chrM|^chrMT" "$bedfiles" > "$outputDir"/chrM.bed
+    bedfiles="$outputDir"/chrM.bed
+  fi
+
+  # Process each bam file
+  for inputBam in $(cat "$inputBamList"); do
+      if [ ! -f "$inputBam" ]; then
+        echo "Error: Input bam file was not found: $inputBam"
+        exit 1
+      fi
+      
+      start_time=$(date +%s)
+      
+      filename=$(basename "$inputBam" .bam)
+      mkdir -p $outputDir/filter_bam
+      samtools view -b -@ $threads "$inputBam" -q 30 -F 1796 > $outputDir/filter_bam/${filename}.bam
+
+      size1=$(stat -c %s "$inputBam")
+      size2=$(stat -c %s "$outputDir/filter_bam/${filename}.bam")
+      ratio=$(echo "scale=4; $size1 / $size2" | bc)
+      echo "Fration of reads after global QC for ${inputBam} : ${ratio}"
+
+      inputBam="$outputDir/filter_bam/${filename}.bam"
+      samtools index -@ $threads "$inputBam"
+
+      local filename=$(basename "$inputBam" .bam)
+      local bam_output_dir="$outputDir/Samples/$filename"
+      mkdir -p "$bam_output_dir"
+      
+      # Features for whole genome
+      if [[ ",$Feature," == *",CNA,"* ]]; then calculate_cna "$inputBam" "$bam_output_dir"; fi
+      if [[ ",$Feature," == *",EM,"* ]]; then calculate_em "$inputBam" "$bam_output_dir"; fi
+      if [[ ",$Feature," == *",FP,"* ]]; then calculate_fp "$inputBam" "$bam_output_dir"; fi
+
+      # Features for specific regions
+      if [[ ",$Feature," == *",NOF,"* ]]; then calculate_nof "$inputBam" "$bam_output_dir"; fi
+      if [[ ",$Feature," == *",NP,"* ]]; then calculate_np "$inputBam" "$bam_output_dir"; fi
+      if [[ ",$Feature," == *",WPS,"* ]]; then calculate_wps "$inputBam" "$bam_output_dir"; fi
+      if [[ ",$Feature," == *",OCF,"* ]]; then calculate_ocf "$inputBam" "$bam_output_dir"; fi
+      if [[ ",$Feature," == *",EMR,"* ]]; then calculate_emr "$inputBam" "$bam_output_dir"; fi
+      if [[ ",$Feature," == *",FPR,"* ]]; then calculate_fpr "$inputBam" "$bam_output_dir"; fi
+
+      # Features for transcription start sites
+      if [[ ",$Feature," == *",PFE,"* ]]; then calculate_pfe "$inputBam" "$bam_output_dir"; fi
+      if [[ ",$Feature," == *",TSSC,"* ]]; then calculate_tssc "$inputBam" "$bam_output_dir"; fi
+      echo "
+      Analysis for file: $inputBam completed."
+      
+      end_time=$(date +%s)
+      elapsed_time=$(( end_time - start_time ))
+      echo "This tool took $elapsed_time seconds for $inputBam"
+  done
+
+  # Generate config file for selected features
+  config_all_file="$script_dir/Feature_Processing/config_all_feature.json"
+  output_config_file="$outputDir/Samples/config_feature.json"
+  generate_config "$Feature" "$config_all_file" "$output_config_file"
+
+  wait
+}
 
 
-#### Copy Number Alterations (CNA)
-In ```CNA.csv```, columns after `label` contain the estimated copy number for each bin. Column name `[chr]_[chrStart]_[chrEnd]` of these columns specifies the chromosome, start coordinate and end coordinate for each bin.
-```r
-sample,label,chr10_100000001_100100000,chr10_10000001_10100000,chr10_1000001_1100000,...
-sample1,1,2,2,2,...
-sample2,1,2,2,2,...
-sample3,0,2,2,2,...
-sample4,0,3,3,3,...
-```
+# Function to generate config file for selected features
+generate_config() {
+  local features_list=$1  # comma-separated list of features
+  local config_all_file=$2  # path to config_all_feature.json
+  local output_config_file=$3  # path to output config file
 
-#### End Motif frequency and diversity of whole genome (EM)
-In ```EM_motifs_frequency.csv```, columns after `label` contain motif frequency for input BAM file across the whole genome. Column name `[Motifs]` of these columns specifies different end motifs.
-```r
-sample,label,AAAA,AAAC,AAAG,...
-sample1,1,0.010256,0.003589,0.005923,...
-sample2,1,0.009953,0.003414,0.005793,...
-sample3,0,0.010264,0.003594,0.005878,...
-sample4,0,0.00947,0.00344,0.005482,...
-```
-In ```EM_motifs_mds.csv```, column `MDS` after `label` contain motif frequency diversity scores for input BAM file across the whole genome.
-```r
-sample,label,MDS
-sample1,1,0.965699
-sample2,1,0.967610
-sample3,0,0.969939
-sample4,0,0.974932
-```
+  # Convert features_list to an array
+  IFS=',' read -r -a features <<< "$features_list"
 
-#### Fragmentation Profile of whole genome (FP)
-In ```Fragmentation_Profile.txt```, columns after `label` contain ratio of short to long fragments across the whole genome with a window of 100kb. Column name `[chr]_[chrStart]_[chrEnd]` of these columns specifies the chromosome, start coordinate and end coordinate for each window.
-```r
-sample,label,chr10_100000001_100100000,chr10_10000001_10100000,chr10_1000001_1100000,...
-sample1,1,0.143288,0.182047,0.205779,...
-sample2,1,0.232316,0.243959,0.238103,...
-sample3,0,0.167793,0.16843,0.187116,...
-sample4,0,0.131223,0.180202,0.200336,...
-```
+  # Declare associative array for feature to keys mapping
+  declare -A feature_to_keys
+  feature_to_keys=( 
+    [CNA]="CNA"
+    [EM]="EM_motifs_frequency EM_motifs_mds"
+    [EMR]="EMR_aggregated_mds EMR_aggregated_motif_frequency EMR_region_mds EMR_region_motif_frequency"
+    [FP]="FP_fragmentation_profile"
+    [FPR]="FPR_fragmentation_profile_regions"
+    [NOF]="NOF_meanfuziness NOF_occupancy"
+    [NP]="NP_mean_coverage NP_central_coverage NP_amplitude"
+    [OCF]="OCF"
+    [PFE]="PFE"
+    [TSSC]="TSSC_average_coverage"
+    [WPS]="WPS_long WPS_short"
+  )
 
-#### Nucleosome Occupancy and Fuzziness (NOF)
-In ```NOF_meanfuziness.csv``` and ```NOF_occupancy.csv```, columns after `label` contain average fuzziness value (```NOF_meanfuziness.csv```) or occupancy value (```NOF_occupancy.csv```) for each region. Column name `[chr]_[chrStart]_[chrEnd]` of these columns specifies the chromosome, start coordinate and end coordinate for each region.
-```r
-sample,label,chr10_100026951_100028952,chr10_100154064_100156065,chr10_100173939_100175940,...
-sample1,1,5.10545,15.2444,13.1614,...
-sample2,1,14.3248,15.8161,21.7031,...
-sample3,0,8.85557,15.4003,12.8956,...
-sample4,0,91.5162,132.746,135.676,...
-```
-#### Nucleosome Profile (NP)
-In ```NP_amplitude.csv```, ```NP_central_coverage.csv``` and ```NP_mean_coverage.csv```, columns after `label` contain nucleosome peak amplitude (```NP_amplitude.csv```), central coverage (```NP_central_coverage.csv```), and the mean coverage (```NP_mean_coverage.csv```) for each site set in the input directory. Column name `[site].10000.txt` of these columns specifies different sites set.
-```r
-sample,label,AHR.10000.txt,AR.10000.txt,ARID3A.10000.txt,...
-sample1,1,0.98707,1.00713,0.97745,...
-sample2,1,0.99656,1.01126,0.98364,...
-sample3,0,0.97693,1.00172,0.97278,...
-sample4,0,0.98448,1.01047,0.98699,...
-```
+  # Build a list of keys to extract from the config_all_feature.json
+  keys_to_extract=()
+  for feature in "${features[@]}"; do
+    keys="${feature_to_keys[$feature]}"
+    if [ -z "$keys" ]; then
+      echo "Warning: No config keys found for feature '$feature'"
+      continue
+    fi
+    for key in $keys; do
+      keys_to_extract+=("$key")
+    done
+  done
 
-Files ```site_list.txt``` under the directory ```/NP_site_list``` contain detail coverage information for each site set in the input directory.
-```r
-sample,label,990,975,960,...
-sample1,1,0.98707,1.00713,0.97745,...
-sample2,1,0.99656,1.01126,0.98364,...
-sample3,0,0.97693,1.00172,0.97278,...
-sample4,0,0.98448,1.01047,0.98699,...
-```
+  if [ ${#keys_to_extract[@]} -eq 0 ]; then
+    echo "Error: No config keys to extract"
+    exit 1
+  fi
 
-#### Windowed Protection Score (WPS)
-In ```WPS_long.csv``` and ```WPS_short.csv```, columns after `label` contain WPS for long fragments (```WPS_long.csv```), WPS for short fragments (```WPS_short.csv```) for each region. Column name `[chr]_[chrStart]_[chrEnd]` of these columns specifies the chromosome, start coordinate and end coordinate for each region.
-```r
-sample,label,chr10_100026951_100028952,chr10_100154064_100156065,chr10_100173939_100175940,...
-sample1,1,-0.453047,-1.16434,-0.827173,...
-sample2,1,-1.12138,-0.908591,-1.54246,...
-sample3,0,-0.934066,-0.972028,-0.815684,...
-sample4,0,-7.13536,-8.07143,-7.43057,...
-```
+  # Build the jq filter to extract the desired keys
+  jq_filter="{"
+  for key in "${keys_to_extract[@]}"; do
+    jq_filter+="\"$key\": .\"$key\", "
+  done
+  jq_filter="${jq_filter%, }"  # Remove trailing comma and space
+  jq_filter+="}"
 
-#### Orientation-aware CfDNA Fragmentation (OCF)
-In ```OCF.csv```, columns after `label` contain OCF values for each region. Column name `[chr]_[chrStart]_[chrEnd]` of these columns specifies the chromosome, start coordinate and end coordinate for each region.
-```r
-sample,label,chr10_100026951_100028952,chr10_100154064_100156065,chr10_100173939_100175940,...
-sample1,1,0,434.782608,0,...
-sample2,1,0,0,44.642857,...
-sample3,0,0,0,0,...
-sample4,0,0,-270.564042,52.910052,...
-```
+  # Use jq to extract the desired keys
+  if ! [ -f "$config_all_file" ]; then
+    echo "Error: config_all_feature.json file not found at $config_all_file"
+    exit 1
+  fi
 
-#### End Motif frequency and diversity for regions (EMR)
-Our toolkit outputs two types of EMR features at different levels:<br>
-(1) Motif frequency and diversity for all input regions aggregated together.<br>
-```EMR_aggregated_motif_frequency.csv```<br>
-```r
-sample,label,AAAA,AAAC,AAAG,...
-sample1,1,0.010256,0.003589,0.005923,...
-sample2,1,0.009953,0.003414,0.005793,...
-sample3,0,0.010264,0.003594,0.005878,...
-sample4,0,0.00947,0.00344,0.005482,...
-```
-```EMR_aggregated_mds.csv```<br>
-```r
-sample,label,MDS
-sample1,1,0.965699
-sample2,1,0.967610
-sample3,0,0.969939
-sample4,0,0.974932
-```
-&nbsp;<br>
-(2) Motif frequency and diversity for each region separately.<br>
-```EMR_region_motif_frequency.csv```<br>
-```r
-sample,label,chr10_100026951_100028952_AAAA,chr10_100026951_100028952_AAAC,chr10_100026951_100028952_AAAG,...
-sample1,1,0.000000,0.000983,0.000983,...
-sample2,1,0.001222,0.000815,0.000407,...
-sample3,0,0.001343,0.003358,0.002686,...
-sample4,0,0.000595,0.001123,0.002114,...
-```
-```EMR_region_mds.csv```<br>
-```r
-sample,label,chr10_100026951_100028952,chr10_100154064_100156065,chr10_100173939_100175940,...
-sample1,1,0.905673,0.951263,0.948304,...
-sample2,1,0.928867,0.941905,0.948625,...
-sample3,0,0.932926,0.946175,0.950612,...
-sample4,0,0.937257,0.951996,0.954475,...
-```
+  jq "$jq_filter" "$config_all_file" > "$output_config_file"
 
-#### Fragmentation Profile for regions (FPR)
-In ```FPR_fragmentation_profile_regions.csv```, columns after `label` contain ratio of short to long fragments for each input region. Column name `[chr]_[chrStart]_[chrEnd]` of these columns specifies the chromosome, start coordinate and end coordinate for each region.
-```r
-sample,label,chr10_100026951_100028952,chr10_100154064_100156065,chr10_100190117_100192118,...
-sample1,1,0.622159,0.205120,0.255837,...
-sample2,1,0.856960,1.246473,0.596067,...
-sample3,0,2.475976,0.387795,0.469562,...
-sample4,0,1.254673,0.769168,0.870592,...
-```
+  echo "Generated config file with selected features: $output_config_file"
+}
 
 
-#### Promoter Fragmentation Entropy (PFE)
-In ```PFE.csv```, columns after `label` contain PFE value for the 2kb surrounding TSS. Column name `[TSS]` of these columns specifies different TSS ID.
-```r
-sample,label,A1BG_1,A1CF_1,A2ML1_1,...
-sample1,1,-1.803228,-2.616873,0.485208,...
-sample2,1,0.390898,-0.408575,-0.66921,...
-sample3,0,2.01609,0.288575,-1.566693,...
-sample4,0,-0.461569,-0.666071,1.086356,...
-```
+# Calculate Copy Number Alterations
+calculate_cna() {
+  local inputBam=$1
+  local bam_output_dir=$2
+  if [[ "$mt" == 1 ]];then
+    echo "chrM region is not supportd by feature CNA"
+  elif [[ "$mt" == 0 ]];then
+    echo '
+    *****Calculating CNA for file: '$inputBam'*****'
+    if [[ "$binsize" != "10" ]] && [[ "$binsize" != "50" ]] && [[ "$binsize" != "500" ]] && [[ "$binsize" != "1000" ]]; then
+      echo "Error: incorrect bin size."
+      exit 1
+    fi
+    mkdir -p $bam_output_dir/CNA
+    $script_dir/ichorCNA/hmmcopy_utils/bin/readCounter --window $((binsize * 1000)) --quality 20 --chromosome "chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY" $inputBam > $bam_output_dir/CNA/CNA.wig
+    if [[ "$genomeVer" == "hg19" ]];then
+      Rscript $script_dir/ichorCNA/ichorCNA/scripts/runIchorCNA.R --genomeBuild hg19 --WIG $bam_output_dir/CNA/CNA.wig --gcWig $script_dir/ichorCNA/ichorCNA/inst/extdata/gc_hg19_${binsize}kb.wig --mapWig $script_dir/ichorCNA/ichorCNA/inst/extdata/map_hg19_${binsize}kb.wig --centromere $script_dir/ichorCNA/ichorCNA/inst/extdata/GRCh37.p13_centromere_UCSC-gapTable.txt --outDir $bam_output_dir/CNA  $addCNA 
+    elif [[ "$genomeVer" == "hg38" ]];then
+      Rscript $script_dir/ichorCNA/ichorCNA/scripts/runIchorCNA.R --genomeBuild hg38 --WIG $bam_output_dir/CNA/CNA.wig --gcWig $script_dir/ichorCNA/ichorCNA/inst/extdata/gc_hg38_${binsize}kb.wig --mapWig $script_dir/ichorCNA/ichorCNA/inst/extdata/map_hg38_${binsize}kb.wig --centromere $script_dir/ichorCNA/ichorCNA/inst/extdata/GRCh38.GCA_000001405.2_centromere_acen.txt --outDir $bam_output_dir/CNA $addCNA
+    fi
+    cut -f1,2,3,4 $bam_output_dir/CNA/test.cna.seg > $bam_output_dir/CNA/CNA.txt
+    rm -r $bam_output_dir/CNA/test
+    rm $bam_output_dir/CNA/test.cna.seg
+    rm $bam_output_dir/CNA/test.correctedDepth.txt
+    rm $bam_output_dir/CNA/test.params.txt
+    rm $bam_output_dir/CNA/test.RData
+    rm $bam_output_dir/CNA/test.seg
+    rm $bam_output_dir/CNA/test.seg.txt
+    rm $bam_output_dir/CNA/CNA.wig
+  fi
+}
 
-#### TSS Coverage (TSSC)
-In ```TSSC_average_coverage.csv```, columns after `label` contain cfDNA fragment coverage value for each TSS surrounding regions. Column name `[chr]_[chrStart]_[chrEnd]` of these columns specifies the chromosome, start coordinate and end coordinate for each TSS surrounding regions.
-```r
-sample,label,chr10_100026951_100028952,chr10_100154064_100156065,chr10_100173939_100175940,...
-sample1,1,1.642751,1.212495,1.000397,...
-sample2,1,1.406582,1.938656,1.691248,...
-sample3,0,1.220205,1.239343,2.053586,...
-sample4,0,1.180354,1.51295,0.361517,...
-```
+# Calculate End motif frequency and diversity
+calculate_em() {
+  if [[ "$sequencing" == "single" ]] ; then
+    echo "Error: Feature EM is specifically designed for paired-end sequencing data."
+    exit 1
+  fi
+  local inputBam=$1
+  local bam_output_dir=$2
+  echo '
+  *****Calculating EM for file: '$inputBam'*****'
+  mkdir -p $bam_output_dir/EM
 
-### Feature visualization
-There is a script located at `/cfDNAanalyzer/Feature_visualization/Feature_visualization.R` for visualizing multiple features extracted by cfDNAanalyzer, comparing the similarity of various features, and identifying redundant features. <br>
+  if [[ "$mt" == 1 ]];then
+    samtools view -b $inputBam chrM > $bam_output_dir/EM/chrM.bam
+    inputBam=$bam_output_dir/EM/chrM.bam
+    samtools index -@ $threads $bam_output_dir/EM/chrM.bam
+  fi 
 
-Visualization results for features can be found under the directory `/cfDNAanalyzer/Feature_visualization`.
+  alignmentSieve -b $inputBam -o $bam_output_dir/EM/filter.bam -p $threads --minFragmentLength 50 --maxFragmentLength 600
+  samtools sort -@ $threads -n -o $bam_output_dir/EM/sorted_by_name.bam $bam_output_dir/EM/filter.bam
+  bedtools bamtobed -bedpe -i $bam_output_dir/EM/sorted_by_name.bam > $bam_output_dir/EM/${filename}.bedpe
+  awk ' BEGIN {OFS="\t"}
+  {
+    min_2_5 = $2
+    if ($5 < min_2_5) min_2_5 = $5
 
-### Feature processing and selection
-Output files under `Feature_Processing_and_Selection/Feature_Processing` and `Feature_Processing_and_Selection/Feature_Selection` directory consist of rows representing different samples. The `sample` column holds the sample's file name, followed by a `label` column that indicates the sample's classification.
+    max_3_6 = $3
+    if ($6 > max_3_6) max_3_6 = $6
 
-#### Feature processing
+    print $1, min_2_5, max_3_6
+  }
+  ' $bam_output_dir/EM/${filename}.bedpe > $bam_output_dir/EM/${filename}.bed
+  python $script_dir/End_motif_frequency/endMotifFreq.py -b $bam_output_dir/EM/${filename}.bed -f $fasta -o1 $bam_output_dir/EM/motifs_frequency.txt -o2 $bam_output_dir/EM/motifs_mds.txt
+  rm $bam_output_dir/EM/sorted_by_name.bam
+  rm $bam_output_dir/EM/${filename}.bedpe
+  rm $bam_output_dir/EM/${filename}.bed
+}
 
-In `[FeatureName].csv`, columns after `label` contain **processed** feature data for each sample.
-```r
-sample,label,feature1,feature2,feature3,...
-sample1,1,-0.710433,-0.206147,-0.419211,...
-sample2,1,0.354042,1.435867,0.320478,...
-sample3,0,-0.417439,-0.567277,-0.846278,...
-sample4,0,-0.85468,-0.255078,-0.54376,...
-```
+# Calculate Fragmentation Profile
+calculate_fp() {
+  if [[ "$mt" == 1 ]];then
+    echo "chrM region is not supportd by feature FP"
+  elif [[ "$mt" == 0 ]];then
+    if [[ "$sequencing" == "single" ]] ; then
+      echo "Error: Feature FP is specifically designed for paired-end sequencing data"
+      exit 1
+    fi
+    local inputBam=$1
+    local bam_output_dir=$2
+    echo '
+    *****Calculating FP for file: '$inputBam'*****'
+    mkdir -p $bam_output_dir/FP
+    if [[ "$genomeVer" == "hg19" ]];then
+      Rscript $script_dir/Fragmentation_profile/fragmentProfile_delfi.R -i=$inputBam -o=$bam_output_dir/FP/FragmentationProfile.txt $script_dir/Fragmentation_profile/hg19_100kb_WG.txt $genomeVer $script_dir
+    elif [[ "$genomeVer" == "hg38" ]];then
+      Rscript $script_dir/Fragmentation_profile/fragmentProfile_delfi.R -i=$inputBam -o=$bam_output_dir/FP/FragmentationProfile.txt $script_dir/Fragmentation_profile/hg38_100kb_WG.txt $genomeVer $script_dir
+    fi
+    cut -f1,2,3,6,7,8 $bam_output_dir/FP/FragmentationProfile.txt > $bam_output_dir/FP/Fragmentation_Profile.txt
+    rm $bam_output_dir/FP/FragmentationProfile.txt
+  fi
+}
 
-#### Feature selection
 
-In`[FeatureName]_[embeddedMethod]_selected.csv`,`[FeatureName]_[filterMethod]_selected.csv` and `[FeatureName]_[wrapperMethod]_selected.csv`, columns after `label` contain **selected** feature data for each sample.
+# Calculate Nucleosome Occupancy and Fuzziness
+calculate_nof() {
+  local inputBam=$1
+  local bam_output_dir=$2
+  echo '
+  *****Calculating NOF for file: '$inputBam'*****'
+  mkdir -p $bam_output_dir/NOF
+  python $script_dir/DANPOS3/danpos.py dpos $inputBam -o $bam_output_dir/NOF $addNOF
+  if [[ "$genomeVer" == "hg19" ]];then
+    $script_dir/DANPOS3/wigToBigWig -clip $bam_output_dir/NOF/pooled/*.wig $script_dir/DANPOS3/hg19.chrom.sizes $bam_output_dir/NOF/NOF.bw
+  elif [[ "$genomeVer" == "hg38" ]];then
+    $script_dir/DANPOS3/wigToBigWig -clip $bam_output_dir/NOF/pooled/*.wig $script_dir/DANPOS3/hg38.chrom.sizes $bam_output_dir/NOF/NOF.bw
+  fi
+  awk 'BEGIN {OFS="\t"} {print $0, "region_" NR}' $bedfiles > $bam_output_dir/NOF/regions_with_ids.bed
+  $script_dir/DANPOS3/bigWigAverageOverBed $bam_output_dir/NOF/NOF.bw  $bam_output_dir/NOF/regions_with_ids.bed $bam_output_dir/NOF/occupancy.tsv -bedOut=$bam_output_dir/NOF/occupancy.bed
+  sed -i '1i\chr\tstart\tend\tID\toccupancy' $bam_output_dir/NOF/occupancy.bed
+  awk -v OFS=$'\t' 'NR>1{print $1,$4-1,$4,$5,$6}' $bam_output_dir/NOF/pooled/*.xls |grep -vE "Lambda_NEB|pUC19"| bedtools intersect -a $bedfiles -b stdin -wo > $bam_output_dir/NOF/intersect.tsv 
+  awk -v OFS=$'\t' '{sum[$1$2$3]+=$8; count[$1$2$3]++; total[$1$2$3]=$1" "$2" "$3} END {for (key in sum) print total[key], sum[key]/count[key]}' $bam_output_dir/NOF/intersect.tsv | sort -k1,1V -k2,2n -k3,3n | awk 'BEGIN {print "chr\tstart\tend\tmeanfuziness"} {print}' > $bam_output_dir/NOF/meanfuziness.tsv
+  rm $bam_output_dir/NOF/intersect.tsv
+  rm $bam_output_dir/NOF/NOF.bw
+  rm $bam_output_dir/NOF/regions_with_ids.bed
+  rm $bam_output_dir/NOF/occupancy.tsv
+}
 
-```r
-sample,label,feature1,feature2,feature3,...
-sample1,1,0.612106,0.9234,0.912867,...
-sample2,1,0.002909,-0.722122,-0.024669,...
-sample3,0,0.626594,0.970688,0.588356,...
-sample4,0,-0.967271,-0.476624,-2.259162,...
-```
+# Calculate Nucleosome Profile
+calculate_np() {
+  if [[ "$mt" == 1 ]];then
+    echo "chrM region is not supportd by feature NP"
+  elif [[ "$mt" == 0 ]];then
+    if [[ "$sequencing" == "single" ]] ; then
+      echo "Error: Feature NP is specifically designed for paired-end sequencing data."
+      exit 1
+    fi
+    local inputBam=$1
+    local bam_output_dir=$2
+    echo '
+    *****Calculating NP for file: '$inputBam'*****'
+    mkdir -p $bam_output_dir/NP
+    # Defining path variables
+    griffin_path="$script_dir/Griffin"
+    if [[ "$genomeVer" == "hg19" ]];then
+      Ref_dir="$griffin_path/Ref_hg19"
+      if [[ -z "$sitespath" ]]; then
+        sitespath=$script_dir/Griffin/Ref_hg19/sites
+      fi
+    elif [[ "$genomeVer" == "hg38" ]];then
+      Ref_dir="$griffin_path/Ref_hg38"
+      if [[ -z "$sitespath" ]]; then
+        sitespath=$script_dir/Griffin/Ref_hg38/sites
+      fi
+    fi
 
-### Two-class machine learning models
+    result_dir="$griffin_path/snakemakes"
+    gc_correction_dir="$result_dir/griffin_GC_and_mappability_correction"
+    nucleosome_profiling_dir="$result_dir/griffin_nucleosome_profiling"
+          
+    # Preparing for GC and mappability corrections
+    sed -e "s!Griffin_path!$griffin_path!g" -e "s!reference_path!$fasta!g" -e "s!Ref_dir!$Ref_dir!g" \
+        -e "s!result_name!$gc_correction_dir/result_${filename}!g" "$gc_correction_dir/config/config.yaml" \
+        > "$gc_correction_dir/config/config_${filename}.yaml"
+          
+    sed "s!input!$inputBam!g" "$gc_correction_dir/config/samples.yaml" \
+        > "$gc_correction_dir/config/samples_${filename}.yaml"
+          
+    sed -e "s!config_samples!$gc_correction_dir/config/samples_${filename}.yaml!g" \
+        -e "s!config_config!$gc_correction_dir/config/config_${filename}.yaml!g" \
+        -e "s!config_cluster!$gc_correction_dir/config/cluster_slurm.yaml!g" \
+        "$gc_correction_dir/griffin_GC_and_mappability_correction.snakefile" \
+        > "$gc_correction_dir/griffin_GC_and_mappability_correction_${filename}.snakefile"
+          
+    snakemake -s "$gc_correction_dir/griffin_GC_and_mappability_correction_${filename}.snakefile" --cores $threads
+          
+    rm "$gc_correction_dir/config/config_${filename}.yaml" "$gc_correction_dir/config/samples_${filename}.yaml"
+    rm "$gc_correction_dir/griffin_GC_and_mappability_correction_${filename}.snakefile"
+    mv "$gc_correction_dir/result_${filename}/samples.GC.yaml" "$nucleosome_profiling_dir/config/samples.GC_${filename}.yaml"
+          
+    # Nucleosome profiling analysis
+    sed -e "s!Griffin_path!$griffin_path!g" -e "s!reference_path!$fasta!g" -e "s!Ref_dir!$Ref_dir!g" \
+        -e "s!result_name!$nucleosome_profiling_dir/result_${filename}!g" \
+        -e "s!tmp_name!$nucleosome_profiling_dir/tmp_${filename}!g" \
+        -e "s!config_cluster!$nucleosome_profiling_dir/config/cluster_slurm.yaml!g" \
+        -e "s!config_sites!$nucleosome_profiling_dir/config/sites_${filename}.yaml!g" \
+        -e "s!config_samples.GC!$nucleosome_profiling_dir/config/samples.GC_${filename}.yaml!g" \
+        "$nucleosome_profiling_dir/config/config.yaml" \
+        > "$nucleosome_profiling_dir/config/config_${filename}.yaml"
+          
+    # Generate site list for nucleosome analysis
+    touch "$nucleosome_profiling_dir/config/sites_${filename}.yaml"
+    echo "site_lists:" > "$nucleosome_profiling_dir/config/sites_${filename}.yaml"
+    find "$sitespath" -type f | while read file; do
+        echo " $(basename "$file"): $file" >> "$nucleosome_profiling_dir/config/sites_${filename}.yaml"
+    done
+          
+    sed -e "s!config_cluster!$nucleosome_profiling_dir/config/cluster_slurm.yaml!g" \
+        -e "s!config_sites!$nucleosome_profiling_dir/config/sites_${filename}.yaml!g" \
+        -e "s!config_samples.GC!$nucleosome_profiling_dir/config/samples.GC_${filename}.yaml!g" \
+        -e "s!config_config!$nucleosome_profiling_dir/config/config_${filename}.yaml!g" \
+        "$nucleosome_profiling_dir/griffin_nucleosome_profiling.snakefile" \
+        > "$nucleosome_profiling_dir/griffin_nucleosome_profiling_${filename}.snakefile"
+          
+    snakemake -s "$nucleosome_profiling_dir/griffin_nucleosome_profiling_${filename}.snakefile" --cores $threads --unlock
+    snakemake -s "$nucleosome_profiling_dir/griffin_nucleosome_profiling_${filename}.snakefile" --cores $threads
+          
+    # Extract columns required for nucleosome analysis results
+    header=$(head -n 1 "$nucleosome_profiling_dir/result_${filename}/sample_name_1/sample_name_1.GC_corrected.coverage.tsv")
+    mean_coverage_col=$(echo "$header" | tr '\t' '\n' | grep -n -m 1 "mean_coverage" | cut -d: -f1)
+    central_coverage_col=$(echo "$header" | tr '\t' '\n' | grep -n -m 1 "central_coverage" | cut -d: -f1)
+    amplitude_col=$(echo "$header" | tr '\t' '\n' | grep -n -m 1 "amplitude" | cut -d: -f1)
+    site_name_col=$(echo "$header" | tr '\t' '\n' | grep -n -m 1 "site_name" | cut -d: -f1)
+          
+    awk -v mean_col="$mean_coverage_col" -v central_col="$central_coverage_col" \
+        -v amp_col="$amplitude_col" -v sites_col="$site_name_col" \
+        'BEGIN {FS=OFS="\t"} NR==1 {print $(sites_col), $(mean_col), $(central_col), $(amp_col); next} {print $(sites_col), $(mean_col), $(central_col), $(amp_col)}' \
+        "$nucleosome_profiling_dir/result_${filename}/sample_name_1/sample_name_1.GC_corrected.coverage.tsv" \
+        > "$nucleosome_profiling_dir/result_${filename}/NucleosomeProfile.txt"
+          
+    rm -r "$gc_correction_dir/result_${filename}"
+    rm "$nucleosome_profiling_dir/config/sites_${filename}.yaml" "$nucleosome_profiling_dir/config/samples.GC_${filename}.yaml" "$nucleosome_profiling_dir/config/config_${filename}.yaml"
+    rm "$nucleosome_profiling_dir/griffin_nucleosome_profiling_${filename}.snakefile"
+    cp -f "$nucleosome_profiling_dir/result_${filename}/NucleosomeProfile.txt" "$bam_output_dir/NP/NucleosomeProfile.txt"
+    cp -f -r "$nucleosome_profiling_dir/result_${filename}/plots" "$bam_output_dir/NP/plots"
+    cp -f -r "$nucleosome_profiling_dir/result_${filename}/sample_name_1" "$bam_output_dir/NP/sample_name_1"
+    rm -r "$nucleosome_profiling_dir/result_${filename}"
+  fi
+}
 
-#### Single Modality/[FeatureName]
+# Calculate Windowed Protection Score
+calculate_wps() {
+  local inputBam=$1
+  local bam_output_dir=$2
+  echo '
+  *****Calculating WPS for file: '$inputBam'*****'
+  mkdir -p $bam_output_dir/WPS
+  echo -e "chr\tstart\tend\tlong_WPS\tshort_WPS" >$bam_output_dir/WPS/WPS.txt
+  # Extract the first three columns of each line of the file (chr,start,end)
+  while IFS=$'\t' read -r col1 col2 col3; do
+    if [ "$col2" -ge 500 ]; then
+      ex_start=$((col2 - 500))
+    else
+      ex_start=$col2
+    fi
+    ex_end=$((col3 + 500))
+    $script_dir/WPS/calculate_wps.sh $inputBam $bam_output_dir/WPS $col1:$col2-$col3 $col1:$ex_start-$ex_end $Minlength_long $Maxlength_long $window_long $Minlength_short $Maxlength_short $window_short $script_dir
+    gzip -df $bam_output_dir/WPS/*.gz
+    # Calculate the average value in the wig file (long/short) for each region and write it to the result file
+    long_average=$(awk '{sum += $1} END {if (NR > 1) print sum / (NR - 1)}' "$bam_output_dir/WPS/WPS_long.wig")
+    short_average=$(awk '{sum += $1} END {if (NR > 1) print sum / (NR - 1)}' "$bam_output_dir/WPS/WPS_short.wig")
+    echo -e "$col1\t$col2\t$col3\t$long_average\t$short_average" >> $bam_output_dir/WPS/WPS.txt
+  done < $bedfiles
+  rm $bam_output_dir/WPS/*.wig
+}
 
-`single_modality_metrics.csv` contains the classifier and feature selection method used, followed by various performance metrics such as accuracy, precision, recall, F1 score, AUC (Area Under the Curve), computation time and memory usage (peak memory).
+# Calculate Orientation-aware CfDNA Fragmentation
+calculate_ocf() {
+  if [[ "$sequencing" == "single" ]] ; then
+    echo "Error: Feature OCF is specifically designed for paired-end sequencing data"
+    exit 1
+  fi
+  local inputBam=$1
+  local bam_output_dir=$2
+  echo '
+  *****Calculating OCF for file: '$inputBam'*****'
+  mkdir -p $bam_output_dir/OCF
+  sort -k1,1 -k2,2n $bedfiles | awk 'BEGIN {OFS="\t"} {print $0, "region_" NR}' > $bam_output_dir/OCF/regions_with_ids.bed
+  samtools sort -@ $threads -n -o $bam_output_dir/OCF/sorted_by_name.bam $inputBam
+  bedtools bamtobed -bedpe -i $bam_output_dir/OCF/sorted_by_name.bam > $bam_output_dir/OCF/${filename}.bedpe
+  awk ' BEGIN {OFS="\t"}
+  {
+    min_2_5 = $2
+    if ($5 < min_2_5) min_2_5 = $5
+  
+    max_3_6 = $3
+    if ($6 > max_3_6) max_3_6 = $6
+  
+    print $1, min_2_5, max_3_6
+  }
+  ' $bam_output_dir/OCF/${filename}.bedpe | sort -k1,1 -k2,2n > $bam_output_dir/OCF/sorted_${filename}.bed
+  $script_dir/OCF/OCF.sh $bam_output_dir/OCF/regions_with_ids.bed $bam_output_dir/OCF/sorted_${filename}.bed sample $bam_output_dir/OCF
+  awk -v OFS="\t" '{n=split($1,a,".");print a[n-2],$2}' $bam_output_dir/OCF/sample.sorted_${filename}.bed.OCF | \
+  awk '{print substr($1, 8), $0}' | sort -n | cut -d' ' -f2- | \
+  awk 'NR==FNR{a[$1]=$0; next} $4 in a {print a[$4], $0}' - $bam_output_dir/OCF/regions_with_ids.bed | \
+  awk '{print $3 "\t" $4 "\t" $5 "\t" $2}' | sed '1i\chr\tstart\tend\tOCF' > $bam_output_dir/OCF/OCF.txt
+  rm $bam_output_dir/OCF/regions_with_ids.bed
+  rm $bam_output_dir/OCF/sorted_by_name.bam
+  rm $bam_output_dir/OCF/${filename}.bedpe
+  rm $bam_output_dir/OCF/sorted_${filename}.bed
+  rm $bam_output_dir/OCF/sample.sorted_${filename}.bed.OCF
+  rm $bam_output_dir/OCF/sample.ol.sorted_${filename}.bed
+}
 
-```r
-FS_Combination,Classifier,accuracy,precision,recall,f1,auc,TotalTime_sec,PeakMemory_MB
-filter_IG_0.023618328,KNN,0.48,0.481481,0.52,0.5,0.4368,919.7527,409.4531
-filter_IG_0.023618328,SVM,0.5,0.5,0.56,0.528302,0.4768,1835.6222,401.8867
-filter_CHI_0.023618328,KNN,0.6,0.6,0.6,0.6,0.6464,42.5313,485.0039
-filter_CHI_0.023618328,SVM,0.64,0.612903,0.76,0.678571,0.4528,33.3784,559.9922
-filter_FS_0.023618328,KNN,0.5,0.0,0.0,0.0,0.5,3.4107,601.1992
-```
+# Calculate End Motif frequency and diversity for Regions
+calculate_emr() {
+  if [[ "$sequencing" == "single" ]] ; then
+    echo "Error: Feature EMR is specifically designed for paired-end sequencing data"
+    exit 1
+  fi
+  local inputBam=$1
+  local bam_output_dir=$2
+  echo '
+  *****Calculating EMR for file: '$inputBam'*****'
+  mkdir -p $bam_output_dir/EMR
+  
+  # aggregated
+  bedtools intersect -abam $inputBam -b $bedfiles > $bam_output_dir/EMR/intersect.bam
+  samtools index -@ $threads $bam_output_dir/EMR/intersect.bam
+  alignmentSieve -b $bam_output_dir/EMR/intersect.bam -o $bam_output_dir/EMR/filter.bam -p $threads --minFragmentLength 50 --maxFragmentLength 600
+  samtools sort -@ $threads -n -o $bam_output_dir/EMR/sorted_by_name.bam $bam_output_dir/EMR/filter.bam
+  bedtools bamtobed -bedpe -i $bam_output_dir/EMR/sorted_by_name.bam > $bam_output_dir/EMR/${filename}.bedpe
+  awk ' BEGIN {OFS="\t"}
+  {
+    min_2_5 = $2
+    if ($5 < min_2_5) min_2_5 = $5
+  
+    max_3_6 = $3
+    if ($6 > max_3_6) max_3_6 = $6
+  
+    print $1, min_2_5, max_3_6
+  }
+  ' $bam_output_dir/EMR/${filename}.bedpe > $bam_output_dir/EMR/${filename}.bed
+  python $script_dir/End_motif_frequency/endMotifFreq.py -b  $bam_output_dir/EMR/${filename}.bed -f $fasta -o1 $bam_output_dir/EMR/aggregated_motif_frequency.txt -o2 $bam_output_dir/EMR/aggregated_mds_noheader.txt
+  sed -i '1iMotif\tFrequency' $bam_output_dir/EMR/aggregated_motif_frequency.txt
+  sed -n '2p' $bam_output_dir/EMR/aggregated_mds_noheader.txt | awk 'NR==1{print "MDS"} {print}' > $bam_output_dir/EMR/aggregated_mds.txt
+  
+  
+  # for all the regions
+  python $script_dir/End_motif_frequency/endMotifFreq_all_regions.py -b1 $bedfiles -b2 $bam_output_dir/EMR/${filename}.bed -f $fasta -o1  $bam_output_dir/EMR/region_mds.txt -o2 $bam_output_dir/EMR/region_motif_frequency.txt
+  sed -i '1ichr\tstart\tend\tMDS' $bam_output_dir/EMR/region_mds.txt
+  sed -i '1ichr\tstart\tend\tMotif\tFrequency'  $bam_output_dir/EMR/region_motif_frequency.txt
+  rm $bam_output_dir/EMR/aggregated_mds_noheader.txt
+  rm $bam_output_dir/EMR/intersect.bam
+  rm $bam_output_dir/EMR/${filename}.bedpe
+  rm $bam_output_dir/EMR/${filename}.bed
+  
+}
 
-`single_modality_probabilities.csv` contains samples IDs and their true labels, followed by the classifier, feature selection method used and predicted probabilities for each class.
+# Calculate Fragmentation Profile for Regions
+calculate_fpr() {
+  if [[ "$mt" == 1 ]];then
+    echo "chrM region is not supportd by feature FPR"
+  elif [[ "$mt" == 0 ]];then
+    if [[ "$sequencing" == "single" ]] ; then
+      echo "Error: Feature FPR pecifically designed for paired-end sequencing data"
+      exit 1
+    fi
+    local inputBam=$1
+    local bam_output_dir=$2
+    echo '
+    *****Calculating FPR for file: '$inputBam'*****'
+    mkdir -p $bam_output_dir/FPR
+    awk 'BEGIN {print "chr\tstart\tend"} {print}' $bedfiles > $bam_output_dir/FPR/regions_with_header.bed
+    Rscript $script_dir/Fragmentation_profile/fragmentProfile_delfi.R -i=$inputBam -o=$bam_output_dir/FPR/FragmentationProfile.txt $bam_output_dir/FPR/regions_with_header.bed $genomeVer $script_dir
+    cut -f1,2,3,6,7,8 $bam_output_dir/FPR/FragmentationProfile.txt > $bam_output_dir/FPR/Fragmentation_Profile_regions.txt
+    rm $bam_output_dir/FPR/FragmentationProfile.txt
+    rm $bam_output_dir/FPR/regions_with_header.bed
+  fi
+}
 
-```r
-SampleID,TrueLabel,FS_Combination,Classifier,Prob_Class0,Prob_Class1
-sample1,0,filter_IG_0.023618328,KNN,0.6,0.4
-sample2,1,filter_IG_0.023618328,KNN,0.4,0.6
-sample3,1,filter_IG_0.023618328,KNN,0.8,0.2
-sample4,0,filter_IG_0.023618328,KNN,0.4,0.6
-sample5,1,filter_IG_0.023618328,KNN,0.6,0.4
-```
+# Calculate Promoter Fragmentation Entropy
+calculate_pfe() {
+  if [[ "$sequencing" == "single" ]] ; then
+    echo "Error: Feature PFE is specifically designed for paired-end sequencing data"
+    exit 1
+  fi
+  local inputBam=$1
+  local bam_output_dir=$2
+  echo '
+  *****Calculating PFE for file: '$inputBam'*****'
+  mkdir -p $bam_output_dir/middle
+  
+  if [[ "$genomeVer" == "hg19" ]]; then
+      control_file=$script_dir/Epic-seq/code/priordata/control_hg19.txt
+      if [[ -z "$tssinfo" ]]; then
+        tssinfo=$script_dir/Epic-seq/code/priordata/sample_hg19.txt
+      fi
+  elif [[ "$genomeVer" == "hg38" ]]; then
+      control_file=$script_dir/Epic-seq/code/priordata/control_hg38.txt
+      if [[ -z "$tssinfo" ]]; then
+        tssinfo=$script_dir/Epic-seq/code/priordata/sample_hg38.txt
+      fi
+  fi 
+  
+  awk 'BEGIN{OFS="\t"} {print $1, $2, $3, "sample", $4, $5}' $tssinfo  > $bam_output_dir/middle/tssinfo_5col.txt
+  cat "$bam_output_dir/middle/tssinfo_5col.txt" "$control_file" | sort -k1,1V -k2,2n | sed '1i\CHR\tTSS\tGene-Symbol\tCategory\tStrand\tTS_ID' > $bam_output_dir/middle/tssinfo.txt
+  awk 'NR>1 {print $1 "\t" $2-1000 "\t" $2+1000}' $bam_output_dir/middle/tssinfo.txt > $bam_output_dir/middle/uncorrect_1_panelbed.txt
+  if [[ "$genomeVer" == "hg19" ]];then
+    awk 'BEGIN {OFS="\t"} NR==FNR {sizes[$1]=$2; next} {if ($3 > sizes[$1]) $3=sizes[$1]; print}' $script_dir/DANPOS3/hg19.chrom.sizes $bam_output_dir/middle/uncorrect_1_panelbed.txt > $bam_output_dir/middle/uncorrect_2_panelbed.txt
+  elif [[ "$genomeVer" == "hg38" ]];then
+    awk 'BEGIN {OFS="\t"} NR==FNR {sizes[$1]=$2; next} {if ($3 > sizes[$1]) $3=sizes[$1]; print}' $script_dir/DANPOS3/hg38.chrom.sizes $bam_output_dir/middle/uncorrect_1_panelbed.txt > $bam_output_dir/middle/uncorrect_2_panelbed.txt
+  fi
+  awk 'BEGIN {OFS="\t"} {if ($2 < 0) $2 = 0; print}' $bam_output_dir/middle/uncorrect_2_panelbed.txt > $bam_output_dir/middle/panelbed.txt
 
-`single_modality_model_explain.csv`  contains a summary table of model interpretability results for each trained classifier. If the `--explain` option is enabled, each row in the model interpretation file summarizes the importance of one feature for a given feature selection combination and classifier across all cross-validation folds:
+  if [[ "$mt" == 1 ]];then
+    grep -E "^chrM|^chrMT" $bam_output_dir/middle/panelbed.txt > $bam_output_dir/middle/chrM_panelbed.txt
+    rm $bam_output_dir/middle/panelbed.txt
+    mv $bam_output_dir/middle/chrM_panelbed.txt $bam_output_dir/middle/panelbed.txt
 
-```r
-FS_Combination,Classifier,Feature,MeanAbsSHAP,MeanStdSHAP,MeanAbsPermImportance,MeanStdPermImportance,SHAP_Fold0,Perm_Fold0
-filter_FS_1.0,SVM,chr19_18941767_18943768,7.304098846218136e-17,,0.0736842105263157,,7.304098846218136e-17,0.0736842105263157
-```
+    sed -n '1p; /^chrM/p' $bam_output_dir/middle/tssinfo.txt > $bam_output_dir/middle/chrM_tssinfo.txt
+    rm $bam_output_dir/middle/tssinfo.txt
+    mv $bam_output_dir/middle/chrM_tssinfo.txt $bam_output_dir/middle/tssinfo.txt
+  fi
 
-If only one type of explanation is requested (e.g. only SHAP or only perm in --explain), the corresponding columns for the other method may be left empty. These interpretation summaries can be used to rank cfDNA features by importance, inspect their stability across folds, and link predictive performance back to specific genomic or fragmentomic patterns.
+  # quality control
+  # depth
+  samtools depth -aa -b $bam_output_dir/middle/panelbed.txt $inputBam > $bam_output_dir/middle/depth.txt
+  depth=$(sort -k3,3n $bam_output_dir/middle/depth.txt | awk '{
+      a[NR] = $3
+  } 
+  END { 
+      if (NR % 2) 
+          print a[(NR + 1) / 2]
+      else 
+          print (a[NR / 2] + a[NR / 2 + 1]) / 2.0
+  }')
+  
+  # fragment length density mode
+  bamPEFragmentSize -b $inputBam -hist $bam_output_dir/middle/fragment_hist.fragmentSize.png -p $threads --outRawFragmentLengths $bam_output_dir/middle/fragmentSize.txt
+  INPUT_FILE="$bam_output_dir/middle/fragmentSize.txt"                                                                                                             
+  MODE=$(Rscript -e "
+  data <- read.table('$INPUT_FILE', header=TRUE, skip=1)
+  colnames(data) <- c('Size', 'Occurrences', 'Sample')
+  fragments <- rep(data\$Size, data\$Occurrences)
+  d <- density(fragments, bw = 'SJ')
+  cat(round(d\$x[which.max(d\$y)], 2))
+  " 2>/dev/null)
+  MODE=${MODE%.*}
+  
+  echo "Median sequencing depth of $inputBam : $depth"
+  echo "Fragment length density mode of $inputBam : $MODE"
+  
+  if [[ "$depth" -ge "$PFEdepth" ]] && [[ "$MODE" -ge 140 && "$MODE" -le 185 ]]; then
+      bedtools intersect -a $inputBam -b $bam_output_dir/middle/panelbed.txt -wa > $bam_output_dir/middle/intersected.bam
+      samtools index $bam_output_dir/middle/intersected.bam
+      Rscript $script_dir/Epic-seq/code/runEPIC.R --epic_dir $script_dir/Epic-seq/code --bamdir $bam_output_dir/middle --tssinfo $bam_output_dir/middle/tssinfo.txt --panelbed $bam_output_dir/middle/panelbed.txt --outdir $bam_output_dir/middle $addEpicSeq
+      mkdir -p $bam_output_dir/PFE
+      cut -f2,5 $bam_output_dir/middle/pfe.matrix.merged.by.0.txt > $bam_output_dir/PFE/PFE.txt
+      # rm -r $bam_output_dir/middle
+      
+  elif [[ "$depth" -ge "$PFEdepth" ]]; then
+      echo "Sample $inputBam failed for the quality control of feature PFE
+      Fragment length density mode of sample must between 140 and 185"
+      # rm -r $bam_output_dir/middle
+      
+  elif [[ "$MODE" -ge 140 && "$MODE" -le 185 ]]; then
+      echo "Sample $inputBam failed for the quality control of feature PFE
+      Median sequencing depth of sample must be large than ${PFEdepth}x"
+      # rm -r $bam_output_dir/middle
+      
+  else
+      echo "Sample $inputBam failed for the quality control of feature PFE
+      Fragment length density mode of sample must between 140 and 185
+      Median sequencing depth of sample must be large than ${PFEdepth}x"
+      # rm -r $bam_output_dir/middle
+      
+  fi
 
-#### Multiple Modality/Concatenation based, Multiple Modality/Model based, Multiple Modality/Transformation based
+}
 
-`multiple_modality_metrics.csv` contains the fusion type, fusion method, classifier and feature selection method used, followed by various performance metrics such as accuracy, precision, recall, F1 score, AUC (Area Under the Curve), computation time and memory usage (peak memory).
+# Calculate TSS coverage 
+calculate_tssc() { 
+  local inputBam=$1
+  local bam_output_dir=$2
+  echo '
+  *****Calculating TSSC for file: '$inputBam'*****'
+  
+  if [[ "$normalization" != "RPKM" ]] && [[ "$normalization" != "CPM" ]] && [[ "$normalization" != "BPM" ]] && [[ "$normalization" != "RPGC" ]]; then
+    echo "Error: Incorrect method to normalize the number of reads per bin for the bamCoverage command of deeptools."
+    exit 1
+  fi
+  mkdir -p $bam_output_dir/TSSC
+  
+  output_file=$bam_output_dir/TSSC/TSS.bed
+  
 
-```r
-FusionType,FusionMethod,FS_Combination,Classifier,accuracy,precision,recall,f1,auc,TotalTime_sec,PeakMemory_MB
-concat,concat,filter_DR_0.2,KNN,0.52,0.52381,0.44,0.478261,0.5616,0.0002,232.9531
-concat,concat,filter_DR_0.2,SVM,0.4,0.4,0.4,0.4,0.3776,0.0001,237.3281
-concat,concat,filter_DR_0.2,KNN,0.52,0.52381,0.44,0.478261,0.5616,0.0002,232.9531
-concat,concat,filter_DR_0.2,SVM,0.4,0.4,0.4,0.4,0.3776,0.0001,237.3281
-```
+  if [[ "$genomeVer" == "hg19" ]]; then
+    chrom_size="$script_dir/DANPOS3/hg19.chrom.sizes"
+    if [[ -z "$TSSfile" ]]; then
+      TSSfile=$script_dir/TSScoverage/TSS_hg19_uniq.bed
+    fi
+  elif [[ "$genomeVer" == "hg38" ]]; then
+    chrom_size="$script_dir/DANPOS3/hg38.chrom.sizes"
+    if [[ -z "$TSSfile" ]]; then
+      TSSfile=$script_dir/TSScoverage/TSS_hg38_uniq.bed
+    fi
+  fi
 
-`multiple_modality_probabilities.csv` contains samples IDs and their true labels, followed by the  fusion type, fusion method, classifier, feature selection method used and predicted probabilities for each class.
 
-```r
-SampleID,TrueLabel,FusionType,FusionMethod,FS_Combination,Classifier,Prob_Class0,Prob_Class1
-sample1,1,concat,concat,filter_DR_0.2,KNN,0.4,0.6
-sample2,1,concat,concat,filter_DR_0.2,KNN,0.6,0.4
-sample3,1,concat,concat,filter_DR_0.2,KNN,0.4,0.6
-sample4,1,concat,concat,filter_DR_0.2,KNN,0.6,0.4
-sample5,1,concat,concat,filter_DR_0.2,KNN,0.4,0.6
-```
+  # Create or clear the output file
+  echo -n > "$output_file"
 
-### Multi-class machine learning models
+  # Process each line of the input file
+  while IFS=$'\t' read -r chrom start end name score strand; do
+      start=$(printf "%d" "$start")
+      end=$(printf "%d" "$end")
+      upstream_site=0
+      downstream_site=0
 
-#### Single modality
-`single_modality_metrics.csv` contains classifier and feature selection method used, followed by various performance metrics such as accuracy, macro-precision, macro-recall, macro-f1 score, computation time and memory usage (peak memory).
-```r
-FS_Combination,Classifier,accuracy,precision_macro,recall_macro,f1_macro,TotalTime_sec,PeakMemory_MB
-wrapper_BOR_0.021070375,KNN,0.473684,0.157895,0.333333,0.214286,509.695,992.7558
-wrapper_BOR_0.021070375,SVM,0.421053,0.488889,0.342593,0.327778,421.3054,991.1528
-wrapper_BOR_0.021070375,RandomForest,0.578947,0.427778,0.546296,0.472222,432.2937,991.2022
-wrapper_BOR_0.021070375,GaussianNB,0.421053,0.305556,0.527778,0.385185
-wrapper_BOR_0.021070375,LogisticRegression,580.3495,990.9873,0.473684,0.488889,0.425926,0.416667,551.8989,992.4312
-wrapper_BOR_0.021070375,XGB,0.421053,0.3125,0.342593,0.297778,571.5343,963.2724
-```
+      if [ "$strand" == "+" ]; then
+          upstream_site=$((start - upstream))
+          if [ "$upstream_site" -lt 0 ]; then
+              upstream_site=0
+          fi
+          downstream_site=$((end + downstream))
+      echo -e "${chrom}\t${upstream_site}\t${downstream_site}\t${name}\t${score}\t${strand}" >> "$output_file"
+      elif [ "$strand" == "-" ]; then
+          upstream_site=$((end + upstream))
+          downstream_site=$((start - downstream))
+          if [ "$downstream_site" -lt 0 ]; then
+              downstream_site=0
+          fi
+      echo -e "${chrom}\t${downstream_site}\t${upstream_site}\t${name}\t${score}\t${strand}" >> "$output_file"
+      else
+          echo "Error: Strand must be either '+' or '-'"
+          exit 1
+      fi
+  done < "$TSSfile"
+  # correct the output bed file
+  awk 'BEGIN {OFS="\t"} NR==FNR {sizes[$1]=$2; next} {if ($3 > sizes[$1]) $3=sizes[$1]; print}' $chrom_size $bam_output_dir/TSSC/TSS.bed | \
+  awk 'NF >= 6' | awk -v OFS='\t' '{$1=$1; print}' > $bam_output_dir/TSSC/correct_6col_TSS.bed
 
-`single_modality_probabilities.csv` contains samples IDs and their true labels, followed by the classifier, feature selection method used and predicted probabilities for each class.
+  if [[ "$mt" == 1 ]];then
+    grep -E "^chrM|^chrMT" $bam_output_dir/TSSC/correct_6col_TSS.bed > $bam_output_dir/TSSC/chrM_correct_6col_TSS.bed
+    rm $bam_output_dir/TSSC/correct_6col_TSS.bed
+    mv $bam_output_dir/TSSC/chrM_correct_6col_TSS.bed $bam_output_dir/TSSC/correct_6col_TSS.bed
+  fi
 
-```r
-SampleID,TrueLabel,FS_Combination,Classifier,Prob_Class0,Prob_Class1,Prob_Class2
-sample1,1,wrapper_BOR_0.021070375,0,KNN,0.2,0.8,0.0
-sample2,1,wrapper_BOR_0.021070375,2,KNN,0.2,0.6,0.2
-sample3,1,wrapper_BOR_0.021070375,2,KNN,0.0,0.6,0.4
-sample4,1,wrapper_BOR_0.021070375,0,KNN,0.2,0.8,0.0
-```
+  if [[ "$sequencing" == "pair" ]];then
+    bamCoverage -b $inputBam -o $bam_output_dir/TSSC/coverage.bw --extendReads $addbamCoverage --numberOfProcessors $threads --normalizeUsing $normalization --minFragmentLength 180 --maxFragmentLength 200
+  elif [[ "$sequencing" == "single" ]];then
+    bamCoverage -b $inputBam -o $bam_output_dir/TSSC/coverage.bw --extendReads 167 $addbamCoverage --numberOfProcessors $threads --normalizeUsing $normalization --minFragmentLength 180 --maxFragmentLength 200
+  fi
+  multiBigwigSummary BED-file -b $bam_output_dir/TSSC/coverage.bw -o $bam_output_dir/TSSC/coverage.npz --BED $bam_output_dir/TSSC/correct_6col_TSS.bed --outRawCounts $bam_output_dir/TSSC/coverage.txt --numberOfProcessors $threads $addmultiBigwigSummary
+  sed '1d' $bam_output_dir/TSSC/coverage.txt | sort -k1,1V -k2,2n -k3,3n | awk 'BEGIN {print "chr\tstart\tend\tcoverage"} {print}' > $bam_output_dir/TSSC/average_coverage.txt
+  rm $bam_output_dir/TSSC/coverage.txt
+  rm $bam_output_dir/TSSC/coverage.bw
+  rm $bam_output_dir/TSSC/coverage.npz
+  rm $bam_output_dir/TSSC/TSS.bed
+  rm $bam_output_dir/TSSC/correct_6col_TSS.bed
+}
 
-`single_modality_model_explain.csv`  contains a summary table of model interpretability results for each trained classifier. If the `--explain` option is enabled, each row in the model interpretation file summarizes the importance of one feature for a given feature selection combination and classifier across all cross-validation folds:
+# Run the analysis
+run_analysis
 
-```r
-FS_Combination,Classifier,Feature,MeanAbsSHAP,MeanStdSHAP,MeanAbsPermImportance,MeanStdPermImportance,SHAP_Fold0,Perm_Fold0
-filter_FS_1.0,SVM,chr19_18941767_18943768,7.304098846218136e-17,,0.0736842105263157,,7.304098846218136e-17,0.0736842105263157
-```
+if [[ -z "$labelFile" ]];then
+    echo "Error: Please provide the label information file, seperated by comma.."
+    exit 1
+else
+    labelFile=$(realpath "$labelFile")
+fi
+cp $labelFile $outputDir/Samples/label.txt
 
-If only one type of explanation is requested (e.g. only SHAP or only perm in --explain), the corresponding columns for the other method may be left empty. These interpretation summaries can be used to rank cfDNA features by importance, inspect their stability across folds, and link predictive performance back to specific genomic or fragmentomic patterns.
+mkdir -p $outputDir/Features
+python $script_dir/Data_transformation.py --config $outputDir/Samples/config_feature.json --root $outputDir/Samples --output $outputDir/Features
 
-#### Multiple Modality/Concatenation based, Multiple Modality/Model based, Multiple Modality/Transformation based
+if [[ ",$Feature," == *",PFE,"* ]]; then
+   Rscript $script_dir/Epic-seq/code/standard_PFE.R $outputDir/Features/PFE.csv $outputDir/Features/PFE_standard.csv
+   rm $outputDir/Features/PFE.csv
+   mv $outputDir/Features/PFE_standard.csv $outputDir/Features/PFE.csv
+fi
 
-`multiple_modality_metrics.csv` contains the fusion type, fusion method, classifier and feature selection method used, followed by various performance metrics such as accuracy, macro-precision, macro-recall, macro-f1 score, computation time and memory usage (peak memory).
+if [[ ",$Feature," == *",NP,"* ]]; then
+   mkdir -p $outputDir/Features/NP_site_list
+   Rscript $script_dir/Griffin/merge_NP_sites.R $outputDir/Samples $outputDir/Features/NP_site_list  
+fi
 
-```r
-FusionType,FusionMethod,FS_Combination,Classifier,accuracy,precision_macro,recall_macro,f1_macro,TotalTime_sec,PeakMemory_MB
-concat,concat,filter_DR_0.2,KNN,0.52,0.52381,0.44,0.478261,0.5616,232.9531
-concat,concat,filter_DR_0.2,SVM,0.4,0.4,0.4,0.4,0.0001,237.3281
-concat,concat,filter_DR_0.2,KNN,0.52,0.52381,0.44,0.5616,0.0002,232.9531
-concat,concat,filter_DR_0.2,SVM,0.4,0.4,0.4,0.4,0.0001,237.3281
-```
+rm -r $outputDir/Samples
 
-`multiple_modality_probabilities.csv` contains samples IDs and their true labels, followed by the  fusion type, fusion method, classifier, feature selection method used and predicted probabilities for each class.
+# downstream analysis
+if [[ "$noDA" == 0 ]];then
+  echo '
+  *****Feature Processing is in execution*****'
+  mkdir -p $outputDir/Feature_Processing_and_Selection
 
-```r
-SampleID,TrueLabel,FusionType,FusionMethod,FS_Combination,Classifier,Prob_Class0,Prob_Class1,Prob_Class2
-sample1,1,concat,concat,filter_DR_0.2,KNN,0.4,0.5,0.1
-sample2,1,concat,concat,filter_DR_0.2,KNN,0.6,0.3,0.1
-sample3,1,concat,concat,filter_DR_0.2,KNN,0.4,0.5,0.1
-sample4,1,concat,concat,filter_DR_0.2,KNN,0.6,0.3,0.1
-sample5,1,concat,concat,filter_DR_0.2,KNN,0.4,0.5,0.1
-```
+  # Feature_Processing
+  mkdir -p $outputDir/Feature_Processing_and_Selection/Feature_Processing
 
-### Composite scoring system
-There is a script located at `/cfDNAanalyzer/Composite_scoring_system/Composite_scoring_system.R` for constructing a composite scoring system that integrates both performance and usability metrics to evaluate model performance in two-class or multi-class machine learning. The composite scoring system facilitates fair comparison between different features to further guide multi-feature integration. <br>
+  # Missing value filter
+  mkdir -p $outputDir/Feature_Processing_and_Selection/Feature_Processing/filter
+  python $script_dir/Feature_Processing/Missing_data_removal.py \
+  --input $outputDir/Features \
+  --output $outputDir/Feature_Processing_and_Selection/Feature_Processing/filter
 
-Visualization of composite scoring system can be found under the directory `/cfDNAanalyzer/Composite_scoring_system`.
+  # standardization
+  mkdir -p $outputDir/Feature_Processing_and_Selection/Feature_Processing/standardization
+  python $script_dir/Feature_Processing/Standardization.py \
+  --input_dir $outputDir/Feature_Processing_and_Selection/Feature_Processing/filter \
+  --output_dir  $outputDir/Feature_Processing_and_Selection/Feature_Processing/standardization \
+  --method $standardM
+  
+  Rscript $script_dir/Feature_Processing/merge_features.R $outputDir/Feature_Processing_and_Selection/Feature_Processing/standardization $outputDir/Feature_Processing_and_Selection/Feature_Processing $Feature
+  if [[ ",$Feature," == *",CNA,"* ]]; then 
+    cp  $outputDir/Feature_Processing_and_Selection/Feature_Processing/standardization/CNA.csv  $outputDir/Feature_Processing_and_Selection/Feature_Processing/CNA.csv
+  fi
 
-## Versions of packages in our environment
+  if [[ ",$Feature," == *",FP,"* ]]; then 
+    cp  $outputDir/Feature_Processing_and_Selection/Feature_Processing/standardization/FP_fragmentation_profile.csv  $outputDir/Feature_Processing_and_Selection/Feature_Processing/FP.csv 
+  fi
+  
+  if [[ ",$Feature," == *",OCF,"* ]]; then 
+    cp  $outputDir/Feature_Processing_and_Selection/Feature_Processing/standardization/OCF.csv  $outputDir/Feature_Processing_and_Selection/Feature_Processing/OCF.csv 
+  fi
+  
+  if [[ ",$Feature," == *",FPR,"* ]]; then 
+    cp  $outputDir/Feature_Processing_and_Selection/Feature_Processing/standardization/FPR_fragmentation_profile_regions.csv  $outputDir/Feature_Processing_and_Selection/Feature_Processing/FPR.csv 
+  fi
+  
+  if [[ ",$Feature," == *",PFE,"* ]]; then 
+    cp  $outputDir/Feature_Processing_and_Selection/Feature_Processing/standardization/PFE.csv  $outputDir/Feature_Processing_and_Selection/Feature_Processing/PFE.csv 
+  fi
+  
+  if [[ ",$Feature," == *",TSSC,"* ]]; then 
+    cp  $outputDir/Feature_Processing_and_Selection/Feature_Processing/standardization/TSSC_average_coverage.csv  $outputDir/Feature_Processing_and_Selection/Feature_Processing/TSSC.csv 
+  fi
+      
+    rm -r $outputDir/Feature_Processing_and_Selection/Feature_Processing/filter
+    rm -r $outputDir/Feature_Processing_and_Selection/Feature_Processing/standardization
 
-### Python:
-```r
-python                         3.7.16
+  if [[ "$noML" == 1 ]];then
+    # feature_selection
+    echo '
+    *****Feature Selection is in execution*****'
+    mkdir -p $outputDir/Feature_Processing_and_Selection/Feature_Selection/
 
-alabaster                      0.7.13
-alembic                        1.8.1
-anyio                          3.5.0
-appdirs                        1.4.4
-argon2-cffi                    20.1.0
-async-generator                1.10
-attrs                          22.1.0
-Babel                          2.11.0
-backcall                       0.2.0
-backports.zoneinfo             0.2.1
-beautifulsoup4                 4.11.1
-bio                            1.6.2
-biopython                      1.81
-biothings-client               0.3.1
-bleach                         4.1.0
-blinker                        1.4
-Boruta                         0.3
-Bottleneck                     1.3.5
-brotlipy                       0.7.0
-bwa                            1.1.1
-bx                             0.3.0
-bx-python                      0.10.0
-cachetools                     5.3.3
-certifi                        2022.12.7
-certipy                        0.1.3
-cffi                           1.15.1
-charset-normalizer             2.0.4
-conda-package-handling         2.0.2
-conda_package_streaming        0.7.0
-ConfigArgParse                 1.7
-cryptography                   39.0.1
-cssselect                      1.2.0
-cssutils                       2.7.1
-cycler                         0.11.0
-datrie                         0.8.2
-debugpy                        1.5.1
-decorator                      5.1.1
-deeptoolsintervals             0.1.9
-defusedxml                     0.7.1
-docutils                       0.19
-entrypoints                    0.4
-exceptiongroup                 1.2.0
-fastjsonschema                 2.16.2
-fonttools                      4.25.0
-gitdb                          4.0.11
-GitPython                      3.1.43
-gprofiler-official             1.0.0
-greenlet                       2.0.1
-h11                            0.14.0
-httpcore                       0.17.3
-httpx                          0.24.1
-idna                           3.4
-imagesize                      1.4.1
-importlib-metadata             4.11.3
-importlib-resources            5.2.0
-iniconfig                      2.0.0
-ipykernel                      6.15.2
-ipython                        7.31.1
-ipython-genutils               0.2.0
-ipywidgets                     7.6.5
-jedi                           0.18.1
-Jinja2                         3.1.2
-joblib                         1.3.0
-json5                          0.9.6
-jsonschema                     4.17.3
-jupyter                        1.0.0
-jupyter_client                 7.4.9
-jupyter-console                6.4.4
-jupyter_core                   4.11.2
-jupyter-server                 1.23.4
-jupyter-telemetry              0.1.0
-jupyterhub                     3.1.1
-jupyterhub-dummyauthenticator  0.3.1
-jupyterlab                     3.5.3
-jupyterlab-language-pack-zh-CN 4.0.post0
-jupyterlab-pygments            0.1.2
-jupyterlab_server              2.19.0
-jupyterlab-widgets             1.0.0
-kiwisolver                     1.4.4
-lightgbm                       4.3.0
-lxml                           5.2.1
-Mako                           1.2.3
-MarkupSafe                     2.1.1
-matplotlib                     3.4.1
-matplotlib-inline              0.1.6
-mHapTk                         1.0
-mistune                        0.8.4
-mkl-fft                        1.3.1
-mkl-random                     1.2.2
-mkl-service                    2.4.0
-mlxtend                        0.23.1
-modules                        1.0.0
-munkres                        1.1.4
-mygene                         3.2.2
-nbclassic                      0.5.2
-nbclient                       0.5.13
-nbconvert                      6.4.4
-nbformat                       5.7.0
-nest-asyncio                   1.5.6
-nose                           1.3.7
-notebook                       6.5.2
-notebook_shim                  0.2.2
-numexpr                        2.8.4
-numpy                          1.21.6
-numpydoc                       1.5.0
-oauthlib                       3.2.0
-packaging                      22.0
-pamela                         1.0.0
-pandas                         1.3.2
-pandocfilters                  1.5.0
-parso                          0.8.3
-pexpect                        4.8.0
-pickleshare                    0.7.5
-Pillow                         9.4.0
-pip                            22.3.1
-pkgutil_resolve_name           1.3.10
-platformdirs                   4.0.0
-plotly                         5.9.0
-pluggy                         1.0.0
-ply                            3.11
-pooch                          1.8.1
-premailer                      3.10.0
-prometheus-client              0.14.1
-prompt-toolkit                 3.0.36
-psutil                         5.9.0
-ptyprocess                     0.7.0
-py2bit                         0.3.0
-pybedtools                     0.8.0
-pyBigWig                       0.3.17
-pycosat                        0.6.4
-pycparser                      2.21
-pyfaidx                        0.8.1.3
-Pygments                       2.17.2
-PyJWT                          2.4.0
-pyOpenSSL                      23.0.0
-pyparsing                      3.0.9
-PyQt5-sip                      12.11.0
-pyrsistent                     0.18.0
-pysam                          0.17.0
-PySocks                        1.7.1
-pytest                         7.4.4
-python-dateutil                2.8.2
-python-json-logger             2.0.1
-python-telegram-bot            20.3
-pytz                           2022.7
-PyYAML                         3.12
-pyzmq                          23.2.0
-qtconsole                      5.4.0
-QtPy                           2.2.0
-ratelimiter                    1.2.0.post0
-requests                       2.28.1
-rpy2                           3.3.3
-ruamel.yaml                    0.17.21
-ruamel.yaml.clib               0.2.6
-scikit-learn                   1.0.2
-scipy                          1.7.1
-seaborn                        0.12.2
-Send2Trash                     1.8.0
-setuptools                     65.6.3
-sip                            6.6.2
-six                            1.16.0
-sklearn-relief                 1.0.0b2
-skrebate                       0.62
-smmap                          5.0.1
-snakemake                      5.19.2
-snfpy                          0.2.2
-sniffio                        1.2.0
-snowballstemmer                2.2.0
-soupsieve                      2.3.2.post1
-Sphinx                         5.3.0
-sphinxcontrib-applehelp        1.0.2
-sphinxcontrib-devhelp          1.0.2
-sphinxcontrib-htmlhelp         2.0.0
-sphinxcontrib-jsmath           1.0.1
-sphinxcontrib-qthelp           1.0.3
-sphinxcontrib-serializinghtml  1.1.5
-SQLAlchemy                     1.4.39
-Tcl                            0.2
-tenacity                       8.0.1
-terminado                      0.17.1
-testpath                       0.6.0
-threadpoolctl                  3.1.0
-toml                           0.10.2
-tomli                          2.0.1
-toolz                          0.12.0
-toposort                       1.10
-torch                          1.13.1
-torchaudio                     0.13.1
-torchvision                    0.14.1
-tornado                        6.2
-tqdm                           4.64.1
-traitlets                      5.7.1
-typing_extensions              4.7.1
-tzlocal                        5.1
-urllib3                        1.26.14
-wcwidth                        0.2.5
-webencodings                   0.5.1
-websocket-client               0.58.0
-wheel                          0.38.4
-widgetsnbextension             3.5.2
-wrapt                          1.16.0
-xgboost                        1.6.2
-yagmail                        0.15.293
-zipp                           3.11.0
-zstandard                      0.19.0
-```
+    # filter method
+    python $script_dir/Feature_Selection/filter_methods.py \
+    --input_dir $outputDir/Feature_Processing_and_Selection/Feature_Processing \
+    --output_dir $outputDir/Feature_Processing_and_Selection/Feature_Selection/ \
+    --methods $filterMethod --percentages $filterNum
 
-### R:
-```r
-R                              4.2.3
+    # wrapper method
+    python $script_dir/Feature_Selection/wrapper_methods.py \
+    --input_dir $outputDir/Feature_Processing_and_Selection/Feature_Processing \
+    --output_dir $outputDir/Feature_Processing_and_Selection/Feature_Selection/ \
+    --methods $wrapperMethod --percentage $wrapperNum
 
-DescTools                      0.99.40
-zoo                            1.8.12
-plyr                           1.8.9
-reshape2                       1.4.4
-data.table                     1.15.2
-MASS                           7.3-60.0.1
-e1071                          1.7-14
-gtools                         3.9.5
-matrixStats                    1.2.0
-optparse                       1.7.4
-httr                           1.4.7
-tidyverse                      2.0.0
-RCurl                          1.98-1.14
-BiocManager                    3.16
-HMMcopy                        1.44.0
-GenomeInfoDb                   1.38.8
-GenomicRanges                  1.54.1
-Rsamtools                      2.18.0
-GenomicAlignments              1.38.2
-biovizBase                     1.50.0
-BSgenome.Hsapiens.UCSC.hg19    1.4.3
-BSgenome.Hsapiens.UCSC.hg38    1.4.5
-```
-## Contact
-Yumei Li: ymli12@suda.edu.cn <br>
-Junpeng Zhou: jpzhouzzz@stu.suda.edu.cn <br>
-Keyao Zhu: kyzhu@stu.suda.edu.cn <br>
+    # embeded method
+    python $script_dir/Feature_Selection/embedded_methods.py \
+    --input_dir $outputDir/Feature_Processing_and_Selection/Feature_Processing \
+    --output_dir $outputDir/Feature_Processing_and_Selection/Feature_Selection/ \
+    --methods $embeddedMethod --percentages $embeddedNum
 
+    # hybrid method
+    if [[ "$hybridType" != "FW" ]] && [[ "$hybridType" != "FE" ]];then
+      echo "Error: Wrong hybrid method."
+      exit 1
+    fi
+
+    if [[ -z "$hybridMethod1" ]] ;then
+      hybridMethod1="IG"
+    fi
+
+    mkdir -p $outputDir/Feature_Processing_and_Selection/Feature_Selection/hybrid_filter_select
+    python $script_dir/Feature_Selection/filter_methods.py \
+    --input_dir $outputDir/Feature_Processing_and_Selection/Feature_Processing \
+    --output_dir $outputDir/Feature_Processing_and_Selection/Feature_Selection/hybrid_filter_select \
+    --methods $hybridMethod1 --percentages $hybridNum1
+    
+    if [[ "$hybridType" = "FE" ]] ;then
+      if [[ -z "$hybridMethod2" ]] ;then
+        hybridMethod2="LASSO"
+      fi
+      python $script_dir/Feature_Selection/embedded_methods.py \
+      --input_dir $outputDir/Feature_Processing_and_Selection/Feature_Selection/hybrid_filter_select \
+      --output_dir $outputDir/Feature_Processing_and_Selection/Feature_Selection \
+      --methods LASSO --percentages $hybridNum2      
+    elif [[ "$hybridType" = "FW" ]]; then
+      if [[ -z "$hybridMethod2" ]] ;then
+        hybridMethod2="BOR"
+      fi
+      python $script_dir/Feature_Selection/wrapper_methods.py \
+      --input_dir $outputDir/Feature_Processing_and_Selection/Feature_Selection/hybrid_filter_select \
+      --output_dir $outputDir/Feature_Processing_and_Selection/Feature_Selection/ \
+      --methods $hybridMethod2 --percentage $hybridNum2
+    fi
+    
+    rm -r $outputDir/Feature_Processing_and_Selection/Feature_Selection/hybrid_filter_select
+
+  elif [[ "$noML" == 0  ]]; then
+    # Machine Learning Model Building
+    echo '
+    *****Machine Learning Model Building is in execution*****'
+    
+      # hybrid method
+    if [[ "$hybridType" != "FW" ]] && [[ "$hybridType" != "FE" ]];then
+      echo "Error: Wrong hybrid method."
+      exit 1
+    fi
+
+    if [[ "$hybridType" = "FE" ]] ;then
+      if [[ -z "$hybridMethod1" ]] ;then
+        hybridMethod1="IG"
+      fi
+      if [[ -z "$hybridMethod2" ]] ;then
+        hybridMethod2="LASSO"
+      fi
+    elif [[ "$hybridType" = "FW" ]]; then
+      if [[ -z "$hybridMethod1" ]] ;then
+        hybridMethod1="IG"
+      fi
+      if [[ -z "$hybridMethod2" ]] ;then
+        hybridMethod2="BOR"
+      fi
+    fi
+
+
+    mkdir -p $outputDir/Machine_Learning
+    if [[ "$classNum" -lt 2 ]];then
+      echo "Error: Wrong classification category."
+      exit 1
+    fi
+
+    # Single modality
+    mkdir -p $outputDir/Machine_Learning/single_modality
+
+    if [[ "$cvSingle" == "LOO" ]];then
+      python $script_dir/Machine_learning/run_single_modality.py \
+      --modality single \
+      --input_dir $outputDir/Feature_Processing_and_Selection/Feature_Processing \
+      --DA_output_dir $outputDir/Machine_Learning/single_modality \
+      --classNum $classNum \
+      --cvSingle LOO \
+      --classifierSingle $classifierSingle \
+      --cvSingle_test_ratio $cvSingle_test_ratio \
+      --filterMethod $filterMethod \
+      --filterFrac $filterNum \
+      --wrapperMethod $wrapperMethod \
+      --wrapperFrac $wrapperNum \
+      --embeddedMethod $embeddedMethod \
+      --embeddedFrac $embeddedNum \
+      --hybridType $hybridType \
+      --hybridMethod1 $hybridMethod1 \
+      --hybridFrac1 $hybridNum1 \
+      --hybridMethod2 $hybridMethod2 \
+      --hybridFrac2 $hybridNum2 \
+      --explain $explain
+    elif [[ "$cvSingle" == "KFold" ]];then
+      python $script_dir/Machine_learning/run_single_modality.py \
+      --modality single \
+      --input_dir $outputDir/Feature_Processing_and_Selection/Feature_Processing \
+      --DA_output_dir $outputDir/Machine_Learning/single_modality \
+      --classNum $classNum \
+      --cvSingle KFold \
+      --nsplitSingle $nsplitSingle \
+      --cvSingle_test_ratio $cvSingle_test_ratio \
+      --classifierSingle $classifierSingle \
+      --filterMethod $filterMethod \
+      --filterFrac $filterNum \
+      --wrapperMethod $wrapperMethod \
+      --wrapperFrac $wrapperNum \
+      --embeddedMethod $embeddedMethod \
+      --embeddedFrac $embeddedNum \
+      --hybridType $hybridType \
+      --hybridMethod1 $hybridMethod1 \
+      --hybridFrac1 $hybridNum1 \
+      --hybridMethod2 $hybridMethod2 \
+      --hybridFrac2 $hybridNum2 \
+      --explain $explain
+    fi
+
+    # Multiple modalities
+    mkdir -p $outputDir/Machine_Learning/multiple_modality/Concatenation_based
+    mkdir -p $outputDir/Machine_Learning/multiple_modality/Model_based
+    mkdir -p $outputDir/Machine_Learning/multiple_modality/Transformation_based
+
+    if [[ ",$Feature," == *",PFE,"* ]]; then
+        if [[ -f "$outputDir/Feature_Processing_and_Selection/Feature_Processing/PFE.csv" ]]; then
+            mkdir -p $outputDir/Feature_Processing_and_Selection/Feature_Processing/filter_sample
+            multi_input_dir="$outputDir/Feature_Processing_and_Selection/Feature_Processing/filter_sample"
+            Rscript $script_dir/Feature_Processing/filter_samples.R $outputDir/Feature_Processing_and_Selection/Feature_Processing
+            cp $outputDir/Feature_Processing_and_Selection/Feature_Processing/PFE.csv $outputDir/Feature_Processing_and_Selection/Feature_Processing/filter_sample
+        else
+            echo "All the samples failed for the quality control of feature PFE.
+                 Giving up feature PFE for the multi-model integration."
+            multi_input_dir="$outputDir/Feature_Processing_and_Selection/Feature_Processing"
+        fi
+        
+    else
+        multi_input_dir="$outputDir/Feature_Processing_and_Selection/Feature_Processing"
+        
+    fi
+    
+    if [[ "$cvMulti" == "LOO" ]];then
+      python $script_dir/Machine_learning/run_multi_modality.py \
+      --modality multi \
+      --input_dir $multi_input_dir \
+      --DA_output_dir $outputDir/Machine_Learning/multiple_modality \
+      --fusion_type concat model trans \
+      --model_method $modelMethod \
+      --trans_method $transMethod \
+      --classNum $classNum \
+      --cvMulti LOO \
+      --classifierMulti $classifierMulti \
+      --cvMulti_test_ratio $cvMulti_test_ratio \
+      --filterMethod $filterMethod \
+      --filterFrac $filterNum \
+      --wrapperMethod $wrapperMethod \
+      --wrapperFrac $wrapperNum \
+      --embeddedMethod $embeddedMethod \
+      --embeddedFrac $embeddedNum \
+      --hybridType $hybridType \
+      --hybridMethod1 $hybridMethod1 \
+      --hybridFrac1 $hybridNum1 \
+      --hybridMethod2 $hybridMethod2 \
+      --hybridFrac2 $hybridNum2 \
+      --explain $explain
+    elif [[ "$cvMulti" == "KFold" ]];then
+      python $script_dir/Machine_learning/run_multi_modality.py \
+      --modality multi \
+      --input_dir $multi_input_dir \
+      --DA_output_dir $outputDir/Machine_Learning/multiple_modality \
+      --fusion_type concat model trans \
+      --model_method $modelMethod \
+      --trans_method $transMethod \
+      --classNum $classNum \
+      --cvMulti KFold \
+      --nsplitMulti $nsplitMulti \
+      --cvMulti_test_ratio $cvMulti_test_ratio \
+      --classifierMulti $classifierMulti \
+      --filterMethod $filterMethod \
+      --filterFrac $filterNum \
+      --wrapperMethod $wrapperMethod \
+      --wrapperFrac $wrapperNum \
+      --embeddedMethod $embeddedMethod \
+      --embeddedFrac $embeddedNum \
+      --hybridType $hybridType \
+      --hybridMethod1 $hybridMethod1 \
+      --hybridFrac1 $hybridNum1 \
+      --hybridMethod2 $hybridMethod2 \
+      --hybridFrac2 $hybridNum2 \
+      --explain $explain
+    fi
+
+    first_file=true
+    find "$outputDir/Machine_Learning/multiple_modality/concat" -mindepth 1 -maxdepth 1 -type d | while read -r dir; do
+        input_file_1="$dir/all_methods_all_classifiers_metrics.csv"
+        input_file_2="$dir/all_methods_all_classifiers_predictions.csv"
+        if [[ -f "$input_file_1" ]] && [[ -f "$input_file_2" ]]; then
+            if [[ "$first_file" == true ]]; then
+                head -n 1 "$input_file_1" > "$outputDir/Machine_Learning/multiple_modality/Concatenation_based/multiple_modality_metrics.csv"
+                head -n 1 "$input_file_2" > "$outputDir/Machine_Learning/multiple_modality/Concatenation_based/multiple_modality_probabilities.csv"
+                first_file=false
+            fi
+            tail -n +2 "$input_file_1" >> "$outputDir/Machine_Learning/multiple_modality/Concatenation_based/multiple_modality_metrics.csv"
+            tail -n +2 "$input_file_2" >> "$outputDir/Machine_Learning/multiple_modality/Concatenation_based/multiple_modality_probabilities.csv"
+        fi
+    done
+
+    first_file=true
+    find "$outputDir/Machine_Learning/multiple_modality/model" -mindepth 1 -maxdepth 1 -type d | while read -r dir; do
+        input_file_1="$dir/all_methods_all_classifiers_metrics.csv"
+        input_file_2="$dir/all_methods_all_classifiers_predictions.csv"
+        if [[ -f "$input_file_1" ]] && [[ -f "$input_file_2" ]]; then
+            if [[ "$first_file" == true ]]; then
+                head -n 1 "$input_file_1" > "$outputDir/Machine_Learning/multiple_modality/Model_based/multiple_modality_metrics.csv"
+                head -n 1 "$input_file_2" > "$outputDir/Machine_Learning/multiple_modality/Model_based/multiple_modality_probabilities.csv"
+                first_file=false
+            fi
+            tail -n +2 "$input_file_1" >> "$outputDir/Machine_Learning/multiple_modality/Model_based/multiple_modality_metrics.csv"
+            tail -n +2 "$input_file_2" >> "$outputDir/Machine_Learning/multiple_modality/Model_based/multiple_modality_probabilities.csv"
+        fi
+    done
+
+    first_file=true
+    find "$outputDir/Machine_Learning/multiple_modality/trans" -mindepth 1 -maxdepth 1 -type d | while read -r dir; do
+        input_file_1="$dir/all_methods_all_classifiers_metrics.csv"
+        input_file_2="$dir/all_methods_all_classifiers_predictions.csv"
+        if [[ -f "$input_file_1" ]] && [[ -f "$input_file_2" ]]; then
+            if [[ "$first_file" == true ]]; then
+                head -n 1 "$input_file_1" > "$outputDir/Machine_Learning/multiple_modality/Transformation_based/multiple_modality_metrics.csv"
+                head -n 1 "$input_file_2" > "$outputDir/Machine_Learning/multiple_modality/Transformation_based/multiple_modality_probabilities.csv"
+                first_file=false
+            fi
+            tail -n +2 "$input_file_1" >> "$outputDir/Machine_Learning/multiple_modality/Transformation_based/multiple_modality_metrics.csv"
+            tail -n +2 "$input_file_2" >> "$outputDir/Machine_Learning/multiple_modality/Transformation_based/multiple_modality_probabilities.csv"
+        fi
+    done
+
+    rm -r "$outputDir/Machine_Learning/multiple_modality/concat"
+    rm -r "$outputDir/Machine_Learning/multiple_modality/model"
+    rm -r "$outputDir/Machine_Learning/multiple_modality/trans"
+
+  fi
+fi
