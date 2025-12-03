@@ -204,10 +204,11 @@ cvMulti_test_ratio=0.2
 classifierMulti="KNN SVM RandomForest GaussianNB LogisticRegression XGB"
 modelMethod=average
 transMethod=pca
+explain=''
 
 # Use getopt to handle long options
 TEMP=$(getopt -o hI:o:F:g:f:s:b:t:B:u:d:S:x:X:w:m:M:W:l:T:n: \
-               --long help,CNA:,NOF:,bamCoverage:,multiBigwigSummary:,PFE:,PFEdepth:,mt,noDA,noML,labelFile:,standardM:,filterMethod:,filterNum:,wrapperMethod:,wrapperNum:,embeddedMethod:,embeddedNum:,hybridType:,hybridMethod1:,hybridMethod2:,hybridNum1:,hybridNum2:,classNum:,cvSingle:,nsplitSingle:,classifierSingle:,cvMulti:,nsplitMulti:,classifierMulti:,modelMethod:,transMethod: \
+               --long help,CNA:,NOF:,bamCoverage:,multiBigwigSummary:,PFE:,PFEdepth:,mt,noDA,noML,labelFile:,standardM:,filterMethod:,filterNum:,wrapperMethod:,wrapperNum:,embeddedMethod:,embeddedNum:,hybridType:,hybridMethod1:,hybridMethod2:,hybridNum1:,hybridNum2:,classNum:,cvSingle:,nsplitSingle:,cvSingle_test_ratio;,cvMulti_test_ratio:,explain:,classifierSingle:,cvMulti:,nsplitMulti:,classifierMulti:,modelMethod:,transMethod: \
                -- "$@")
 
 # Check whether getopt succeeded
@@ -277,6 +278,7 @@ while true; do
         --classifierMulti)        classifierMulti=$2; shift 2;;
         --modelMethod)            modelMethod=$2; shift 2;;
         --transMethod)            transMethod=$2; shift 2;;
+        --explain)                explain=$2; shift 2;;
         --)                       shift; break;;
         *)                        echo "Unexpected option: $1"; exit 1;;
     esac
@@ -341,6 +343,12 @@ run_analysis() {
       filename=$(basename "$inputBam" .bam)
       mkdir -p $outputDir/filter_bam
       samtools view -b -@ $threads "$inputBam" -q 30 -F 1796 > $outputDir/filter_bam/${filename}.bam
+
+      size1=$(stat -c %s "$inputBam")
+      size2=$(stat -c %s "$outputDir/filter_bam/${filename}.bam")
+      ratio=$(echo "scale=4; $size1 / $size2" | bc)
+      echo "Fration of reads after global QC for ${inputBam} : ${ratio}"
+
       inputBam="$outputDir/filter_bam/${filename}.bam"
       samtools index -@ $threads "$inputBam"
 
@@ -1171,7 +1179,8 @@ if [[ "$noDA" == 0 ]];then
       --hybridMethod1 $hybridMethod1 \
       --hybridFrac1 $hybridNum1 \
       --hybridMethod2 $hybridMethod2 \
-      --hybridFrac2 $hybridNum2
+      --hybridFrac2 $hybridNum2 \
+      --explain $explain
     elif [[ "$cvSingle" == "KFold" ]];then
       python $script_dir/Machine_learning/run_single_modality.py \
       --modality single \
@@ -1192,7 +1201,8 @@ if [[ "$noDA" == 0 ]];then
       --hybridMethod1 $hybridMethod1 \
       --hybridFrac1 $hybridNum1 \
       --hybridMethod2 $hybridMethod2 \
-      --hybridFrac2 $hybridNum2
+      --hybridFrac2 $hybridNum2 \
+      --explain $explain
     fi
 
     # Multiple modalities
@@ -1239,7 +1249,8 @@ if [[ "$noDA" == 0 ]];then
       --hybridMethod1 $hybridMethod1 \
       --hybridFrac1 $hybridNum1 \
       --hybridMethod2 $hybridMethod2 \
-      --hybridFrac2 $hybridNum2
+      --hybridFrac2 $hybridNum2 \
+      --explain $explain
     elif [[ "$cvMulti" == "KFold" ]];then
       python $script_dir/Machine_learning/run_multi_modality.py \
       --modality multi \
@@ -1263,7 +1274,8 @@ if [[ "$noDA" == 0 ]];then
       --hybridMethod1 $hybridMethod1 \
       --hybridFrac1 $hybridNum1 \
       --hybridMethod2 $hybridMethod2 \
-      --hybridFrac2 $hybridNum2
+      --hybridFrac2 $hybridNum2 \
+      --explain $explain
     fi
 
     first_file=true
