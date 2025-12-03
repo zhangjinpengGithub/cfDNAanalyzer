@@ -208,7 +208,7 @@ explain=''
 
 # Use getopt to handle long options
 TEMP=$(getopt -o hI:o:F:g:f:s:b:t:B:u:d:S:x:X:w:m:M:W:l:T:n: \
-               --long help,CNA:,NOF:,bamCoverage:,multiBigwigSummary:,PFE:,PFEdepth:,mt,noDA,noML,labelFile:,standardM:,filterMethod:,filterNum:,wrapperMethod:,wrapperNum:,embeddedMethod:,embeddedNum:,hybridType:,hybridMethod1:,hybridMethod2:,hybridNum1:,hybridNum2:,classNum:,cvSingle:,nsplitSingle:,cvSingle_test_ratio;,cvMulti_test_ratio:,explain:,classifierSingle:,cvMulti:,nsplitMulti:,classifierMulti:,modelMethod:,transMethod: \
+               --long help,CNA:,NOF:,bamCoverage:,multiBigwigSummary:,PFE:,PFEdepth:,mt,noDA,noML,labelFile:,standardM:,filterMethod:,filterNum:,wrapperMethod:,wrapperNum:,embeddedMethod:,embeddedNum:,hybridType:,hybridMethod1:,hybridMethod2:,hybridNum1:,hybridNum2:,classNum:,cvSingle:,nsplitSingle:,cvSingle_test_ratio:,cvMulti_test_ratio:,explain:,classifierSingle:,cvMulti:,nsplitMulti:,classifierMulti:,modelMethod:,transMethod: \
                -- "$@")
 
 # Check whether getopt succeeded
@@ -839,13 +839,19 @@ calculate_pfe() {
   awk 'BEGIN {OFS="\t"} {if ($2 < 0) $2 = 0; print}' $bam_output_dir/middle/uncorrect_2_panelbed.txt > $bam_output_dir/middle/panelbed.txt
 
   if [[ "$mt" == 1 ]];then
-    grep -E "^chrM|^chrMT" $bam_output_dir/middle/panelbed.txt > $bam_output_dir/middle/chrM_panelbed.txt
-    rm $bam_output_dir/middle/panelbed.txt
-    mv $bam_output_dir/middle/chrM_panelbed.txt $bam_output_dir/middle/panelbed.txt
+    if [[ "$tssinfo" == "$script_dir/Epic-seq/code/priordata/sample_hg19.txt" ]] || [[ "$tssinfo" == "$script_dir/Epic-seq/code/priordata/sample_hg38.txt" ]];then
+        echo "
+        NOTE: Default PFE TSSs were not located in mitochondrial chromosome"
+        exit 1
+    else
+      grep -E "^chrM|^chrMT" $bam_output_dir/middle/panelbed.txt > $bam_output_dir/middle/chrM_panelbed.txt
+      rm $bam_output_dir/middle/panelbed.txt
+      mv $bam_output_dir/middle/chrM_panelbed.txt $bam_output_dir/middle/panelbed.txt
 
-    sed -n '1p; /^chrM/p' $bam_output_dir/middle/tssinfo.txt > $bam_output_dir/middle/chrM_tssinfo.txt
-    rm $bam_output_dir/middle/tssinfo.txt
-    mv $bam_output_dir/middle/chrM_tssinfo.txt $bam_output_dir/middle/tssinfo.txt
+      sed -n '1p; /^chrM/p' $bam_output_dir/middle/tssinfo.txt > $bam_output_dir/middle/chrM_tssinfo.txt
+      rm $bam_output_dir/middle/tssinfo.txt
+      mv $bam_output_dir/middle/chrM_tssinfo.txt $bam_output_dir/middle/tssinfo.txt
+    fi
   fi
 
   # quality control
@@ -967,6 +973,8 @@ calculate_tssc() {
   awk 'NF >= 6' | awk -v OFS='\t' '{$1=$1; print}' > $bam_output_dir/TSSC/correct_6col_TSS.bed
 
   if [[ "$mt" == 1 ]];then
+    echo "
+    NOTE: Default mitochondrial chromosome style is: chrMT"
     grep -E "^chrM|^chrMT" $bam_output_dir/TSSC/correct_6col_TSS.bed > $bam_output_dir/TSSC/chrM_correct_6col_TSS.bed
     rm $bam_output_dir/TSSC/correct_6col_TSS.bed
     mv $bam_output_dir/TSSC/chrM_correct_6col_TSS.bed $bam_output_dir/TSSC/correct_6col_TSS.bed
@@ -1160,50 +1168,28 @@ if [[ "$noDA" == 0 ]];then
     # Single modality
     mkdir -p $outputDir/Machine_Learning/single_modality
 
-    if [[ "$cvSingle" == "LOO" ]];then
-      python $script_dir/Machine_learning/run_single_modality.py \
-      --modality single \
-      --input_dir $outputDir/Feature_Processing_and_Selection/Feature_Processing \
-      --DA_output_dir $outputDir/Machine_Learning/single_modality \
-      --classNum $classNum \
-      --cvSingle LOO \
-      --classifierSingle $classifierSingle \
-      --cvSingle_test_ratio $cvSingle_test_ratio \
-      --filterMethod $filterMethod \
-      --filterFrac $filterNum \
-      --wrapperMethod $wrapperMethod \
-      --wrapperFrac $wrapperNum \
-      --embeddedMethod $embeddedMethod \
-      --embeddedFrac $embeddedNum \
-      --hybridType $hybridType \
-      --hybridMethod1 $hybridMethod1 \
-      --hybridFrac1 $hybridNum1 \
-      --hybridMethod2 $hybridMethod2 \
-      --hybridFrac2 $hybridNum2 \
-      --explain $explain
-    elif [[ "$cvSingle" == "KFold" ]];then
-      python $script_dir/Machine_learning/run_single_modality.py \
-      --modality single \
-      --input_dir $outputDir/Feature_Processing_and_Selection/Feature_Processing \
-      --DA_output_dir $outputDir/Machine_Learning/single_modality \
-      --classNum $classNum \
-      --cvSingle KFold \
-      --nsplitSingle $nsplitSingle \
-      --cvSingle_test_ratio $cvSingle_test_ratio \
-      --classifierSingle $classifierSingle \
-      --filterMethod $filterMethod \
-      --filterFrac $filterNum \
-      --wrapperMethod $wrapperMethod \
-      --wrapperFrac $wrapperNum \
-      --embeddedMethod $embeddedMethod \
-      --embeddedFrac $embeddedNum \
-      --hybridType $hybridType \
-      --hybridMethod1 $hybridMethod1 \
-      --hybridFrac1 $hybridNum1 \
-      --hybridMethod2 $hybridMethod2 \
-      --hybridFrac2 $hybridNum2 \
-      --explain $explain
-    fi
+
+    python $script_dir/Machine_learning/run_single_modality.py \
+    --modality single \
+    --input_dir $outputDir/Feature_Processing_and_Selection/Feature_Processing \
+    --DA_output_dir $outputDir/Machine_Learning/single_modality \
+    --classNum $classNum \
+    --cvSingle $cvSingle \
+    --classifierSingle $classifierSingle \
+    --cvSingle_test_ratio $cvSingle_test_ratio \
+    --filterMethod $filterMethod \
+    --filterFrac $filterNum \
+    --wrapperMethod $wrapperMethod \
+    --wrapperFrac $wrapperNum \
+    --embeddedMethod $embeddedMethod \
+    --embeddedFrac $embeddedNum \
+    --hybridType $hybridType \
+    --hybridMethod1 $hybridMethod1 \
+    --hybridFrac1 $hybridNum1 \
+    --hybridMethod2 $hybridMethod2 \
+    --hybridFrac2 $hybridNum2 \
+    --explain $explain
+
 
     # Multiple modalities
     mkdir -p $outputDir/Machine_Learning/multiple_modality/Concatenation_based
@@ -1227,56 +1213,32 @@ if [[ "$noDA" == 0 ]];then
         
     fi
     
-    if [[ "$cvMulti" == "LOO" ]];then
-      python $script_dir/Machine_learning/run_multi_modality.py \
-      --modality multi \
-      --input_dir $multi_input_dir \
-      --DA_output_dir $outputDir/Machine_Learning/multiple_modality \
-      --fusion_type concat model trans \
-      --model_method $modelMethod \
-      --trans_method $transMethod \
-      --classNum $classNum \
-      --cvMulti LOO \
-      --classifierMulti $classifierMulti \
-      --cvMulti_test_ratio $cvMulti_test_ratio \
-      --filterMethod $filterMethod \
-      --filterFrac $filterNum \
-      --wrapperMethod $wrapperMethod \
-      --wrapperFrac $wrapperNum \
-      --embeddedMethod $embeddedMethod \
-      --embeddedFrac $embeddedNum \
-      --hybridType $hybridType \
-      --hybridMethod1 $hybridMethod1 \
-      --hybridFrac1 $hybridNum1 \
-      --hybridMethod2 $hybridMethod2 \
-      --hybridFrac2 $hybridNum2 \
-      --explain $explain
-    elif [[ "$cvMulti" == "KFold" ]];then
-      python $script_dir/Machine_learning/run_multi_modality.py \
-      --modality multi \
-      --input_dir $multi_input_dir \
-      --DA_output_dir $outputDir/Machine_Learning/multiple_modality \
-      --fusion_type concat model trans \
-      --model_method $modelMethod \
-      --trans_method $transMethod \
-      --classNum $classNum \
-      --cvMulti KFold \
-      --nsplitMulti $nsplitMulti \
-      --cvMulti_test_ratio $cvMulti_test_ratio \
-      --classifierMulti $classifierMulti \
-      --filterMethod $filterMethod \
-      --filterFrac $filterNum \
-      --wrapperMethod $wrapperMethod \
-      --wrapperFrac $wrapperNum \
-      --embeddedMethod $embeddedMethod \
-      --embeddedFrac $embeddedNum \
-      --hybridType $hybridType \
-      --hybridMethod1 $hybridMethod1 \
-      --hybridFrac1 $hybridNum1 \
-      --hybridMethod2 $hybridMethod2 \
-      --hybridFrac2 $hybridNum2 \
-      --explain $explain
-    fi
+
+    python $script_dir/Machine_learning/run_multi_modality.py \
+    --modality multi \
+    --input_dir $multi_input_dir \
+    --DA_output_dir $outputDir/Machine_Learning/multiple_modality \
+    --fusion_type concat model trans \
+    --model_method $modelMethod \
+    --trans_method $transMethod \
+    --classNum $classNum \
+    --cvMulti $cvMulti \
+    --classifierMulti $classifierMulti \
+    --cvMulti_test_ratio $cvMulti_test_ratio \
+    --filterMethod $filterMethod \
+    --filterFrac $filterNum \
+    --wrapperMethod $wrapperMethod \
+    --wrapperFrac $wrapperNum \
+    --embeddedMethod $embeddedMethod \
+    --embeddedFrac $embeddedNum \
+    --hybridType $hybridType \
+    --hybridMethod1 $hybridMethod1 \
+    --hybridFrac1 $hybridNum1 \
+    --hybridMethod2 $hybridMethod2 \
+    --hybridFrac2 $hybridNum2 \
+    --explain $explain
+
+
 
     first_file=true
     find "$outputDir/Machine_Learning/multiple_modality/concat" -mindepth 1 -maxdepth 1 -type d | while read -r dir; do
