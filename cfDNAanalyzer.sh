@@ -14,19 +14,20 @@ Usage:
 -------------------- Options for feature extraction --------------------
 
 -----General options -----
-  -I  FILE      A text file containing all input BAM files with one BAM file per line. 
+  -I   FILE     A text file containing all input BAM files with one BAM file per line. 
                 BAM files generated using both Bowtie2 and BWA are accepted.  
-  -o  DIR       Output directory for all the results. Default: [./]
-  -F  STR       Features to extract, including CNA, NOF, WPS, EM, EMR, FP, FPR, NP, OCF, PFE, and TSSC.
+  -o   DIR      Output directory for all the results. Default: [./]
+  -F   STR      Features to extract, including CNA, NOF, WPS, EM, EMR, FP, FPR, NP, OCF, PFE, and TSSC.
                 Features should be set as a string separated by comma, e.g., CNA,NOF. 
                 Default: All available features will be extracted.
                 The detailed description of each feature can be accessed at https://github.com/LiymLab/cfDNAanalyzer. 
                 Note: The following features are specifically designed for paired-end sequencing data: FP, FPR, EM, EMR, NP, PFE, and OCF.
-  -g  STR       Genome version of input BAM files (hg19/hg38). Default: [hg38] 
-  -b  FILE      A BED3 file specifying the regions to extract features.
+  -g   STR      Genome version of input BAM files (hg19/hg38). Default: [hg38] 
+  -b   FILE     A BED3 file specifying the regions to extract features.
                 The file should contain three TAB-delimited columns: chromosome start end.
-  -s  STR       Sequencing method of input BAM files (single/pair). Default: [pair]
-  -t  INT       Number of threads to use. Default: [1]              
+  -s   STR       Sequencing method of input BAM files (single/pair). Default: [pair]
+  -t   INT      Number of threads to use. Default: [1]   
+  --mt LOGIC    Only extract the features of mitochondrial cfDNA. Default: [FALSE]
 
 ----- Options specific for Copy Number Alterations (CNA) -----
   -B     INT    Bin size in kilobases (10, 50, 500, or 1000). Default: [1000]
@@ -56,11 +57,12 @@ Usage:
                 If not provided, the 377 TF binding site lists (cfDNAanalyzer/Griffin/Ref_hg19/sites or cfDNAanalyzer/Griffin/Ref_hg38/sites) from the original Nucleosome Profile paper will be used . 
 
 ----- Options for Promoter Fragmentation Entropy (PFE) -----
-  -T     FILE   A TAB-delimited TSS information file without any header.
-                The file must have six columns: (1) chromosome, (2) 1-base TSS coordinate, (3) gene name, (4) strand (+1/-1) and (5) TSS ID (e.g., for genes with multiple TSS, this could be geneName_1, geneName_2, etc.)
-                If not provided, TSSs (cfDNAanalyzer/Epic-seq/code/priordata/sample_hg19.txt or cfDNAanalyzer/Epic-seq/code/priordata/sample_hg38.txt) from the original Promoter Fragmentation Entropy paper will be used.
-  --PFE  STR    Addtional parameter setting for PFE analysis. 
-                The full parameter list is available by running: Rscript cfDNAanalyzer/Epic-seq/code/runEPIC.R -h.[optional]
+  -T     FILE     A TAB-delimited TSS information file without any header.
+                  The file must have six columns: (1) chromosome, (2) 1-base TSS coordinate, (3) gene name, (4) strand (+1/-1) and (5) TSS ID (e.g., for genes with multiple TSS, this could be geneName_1, geneName_2, etc.)
+                  If not provided, TSSs (cfDNAanalyzer/Epic-seq/code/priordata/sample_hg19.txt or cfDNAanalyzer/Epic-seq/code/priordata/sample_hg38.txt) from the original Promoter Fragmentation Entropy paper will be used.
+  --PFEdepth STR  Minimun sequencing depth to filter samples. Default: [500]
+  --PFE  STR      Additional parameter setting for PFE analysis. 
+                  The full parameter list is available by running: Rscript cfDNAanalyzer/Epic-seq/code/runEPIC.R -h.[optional]
 
 ----- Options for TSS Coverage (TSSC) -----
   -u                    INT   Number of base pairs upstream of TSS used for calculating TSSC. Default: [1000]
@@ -68,9 +70,9 @@ Usage:
   -S                    FILE  A BED6 file specifying the coordinates of TSSs used for calculating TSSC. 
                               If not provided, all TSSs of refSeq genes will be used.
   -n                    STR   Methods to normalize the number of reads per bin for the "bamCoverage" command of deeptools (RPKM,CPM,BPM,RPGC) . Default: [RPKM]
-  --bamCoverage         STR   Additional parameter seting for the "bamCoverage" command of deeptools.
+  --bamCoverage         STR   Additional parameter setting for the "bamCoverage" command of deeptools.
                               The full parameter list is available by running: bamCoverage -h. [optional] 
-  --multiBigwigSummary  STR   Additional parameter seting for the "multiBigwigSummary" command of deeptools.
+  --multiBigwigSummary  STR   Additional parameter setting for the "multiBigwigSummary" command of deeptools.
                               The full parameter list is available by running: multiBigwigSummary -h.[optional].
                           
 
@@ -78,7 +80,7 @@ Usage:
   --noDA                LOGIC  Skip all the downstream analysis.
   --noML                LOGIC  Skip machine learning model building, only feature processing and selection will be conducted.
                                Methods in feature selection will leverage the label information of all samples.
-  --labelFile           FILE   Label information file for all the samples, seperated by comma.
+  --labelFile           FILE   Label information file for all the samples, separated by comma.
                                This file must have two columns. The sample column contains the basename of all the samples. The label column contains all the samples' label information (like 0,1 for two class and 0,1,2 for three class).
 
 ----- Options for feature processing and selection -----
@@ -111,13 +113,15 @@ Usage:
   
 ----- Options for machine learning model building -----
   --classNum          INT   Number of classification categories (2 or more). Default: [2]
-  --cvSingle          STR   Cross-validation method applied in single modality, options include leave-one-out (LOO) or K-fold (KFold). Default: [LOO]
+  --cvSingle          STR   Method spliting training and testing set applied in single modality, options include leave-one-out (LOO), K-fold cross-validation (KFold), single hold-out method (Single) or setting the whole dataset as testing set (Independent). Default: [LOO]
   --nsplitSingle      INT   Number of folds designated for K-fold cross-validation in single modality. Default: [5]
+  --cvSingle_test_ratio STR Ratio of testing set designated for single hold-out method in single modality. Default: [0.2] 
   --classifierSingle  STR   Classifiers employed in single modality (KNN SVM RandomForest GaussianNB LogisticRegression XGB).
                             Classifiers should be set as a string separated by space in quotes, e.g., 'KNN XGB'.
                             Default: All available classifiers will be applied.
-  --cvMulti           STR   Cross-validation method applied in multiple modalities, options include leave-one-out (LOO) or K-fold (KFold). Default: [LOO]
+  --cvMulti           STR   Method spliting training and testing set applied in multi modalities, options include leave-one-out (LOO), K-fold cross-validation (KFold), single hold-out method (Single) or setting the whole dataset as testing set (Independent). Default: [LOO]
   --nsplitMulti       INT   Number of folds designated for K-fold cross-validation in multiple modalities. Default: [5]
+  --cvMulti_test_ratio STR Ratio of testing set designated for single hold-out method in multi modalities. Default: [0.2] 
   --classifierMulti   STR   Classifiers employed in multiple modalities (KNN SVM RandomForest GaussianNB LogisticRegression XGB).
                             Classifiers should be set as a string separated by space in quotes, e.g., 'KNN XGB'.
                             Default: All available classifiers will be applied.
@@ -128,7 +132,10 @@ Usage:
   --transMethod       STR   Transformation-based integration methods employed in multiple modality. (pca linear polynomial rbf sigmoid snf) 
                             Methods should be set as a string separated by space in quotes, e.g., 'pca linear'. 
                             Default: [pca]
-                            The detailed description of each method can be accessed at https://github.com/LiymLab/cfDNAanalyzer.     
+                            The detailed description of each method can be accessed at https://github.com/LiymLab/cfDNAanalyzer.  
+  --explain           STR   Optional model interpretation methods to compute for each trained classifier. (SHAP perm)
+                            Methods should be set as a string separated by space in quotes, e.g. 'SHAP perm'.
+                            Default: No model interpretation.   
 EOF
     exit 0
 }
@@ -189,9 +196,11 @@ hybridNum2=0.2
 classNum=2
 cvSingle=LOO
 nsplitSingle=5
+cvSingle_test_ratio=0.2
 classifierSingle="KNN SVM RandomForest GaussianNB LogisticRegression XGB"
 cvMulti=LOO
 nsplitMulti=5
+cvMulti_test_ratio=0.2
 classifierMulti="KNN SVM RandomForest GaussianNB LogisticRegression XGB"
 modelMethod=average
 transMethod=pca
@@ -260,6 +269,8 @@ while true; do
         --classNum)               classNum=$2; shift 2;;
         --cvSingle)               cvSingle=$2; shift 2;;
         --nsplitSingle)           nsplitSingle=$2; shift 2;;
+        --cvSingle_test_ratio)    cvSingle_test_ratio=$2; shift 2;;
+        --cvMulti_test_ratio)     cvMulti_test_ratio=$2; shift 2;;
         --classifierSingle)       classifierSingle=$2; shift 2;;
         --cvMulti)                cvMulti=$2; shift 2;;
         --nsplitMulti)            nsplitMulti=$2; shift 2;;
@@ -1149,6 +1160,7 @@ if [[ "$noDA" == 0 ]];then
       --classNum $classNum \
       --cvSingle LOO \
       --classifierSingle $classifierSingle \
+      --cvSingle_test_ratio $cvSingle_test_ratio \
       --filterMethod $filterMethod \
       --filterFrac $filterNum \
       --wrapperMethod $wrapperMethod \
@@ -1168,6 +1180,7 @@ if [[ "$noDA" == 0 ]];then
       --classNum $classNum \
       --cvSingle KFold \
       --nsplitSingle $nsplitSingle \
+      --cvSingle_test_ratio $cvSingle_test_ratio \
       --classifierSingle $classifierSingle \
       --filterMethod $filterMethod \
       --filterFrac $filterNum \
@@ -1215,6 +1228,7 @@ if [[ "$noDA" == 0 ]];then
       --classNum $classNum \
       --cvMulti LOO \
       --classifierMulti $classifierMulti \
+      --cvMulti_test_ratio $cvMulti_test_ratio \
       --filterMethod $filterMethod \
       --filterFrac $filterNum \
       --wrapperMethod $wrapperMethod \
@@ -1237,6 +1251,7 @@ if [[ "$noDA" == 0 ]];then
       --classNum $classNum \
       --cvMulti KFold \
       --nsplitMulti $nsplitMulti \
+      --cvMulti_test_ratio $cvMulti_test_ratio \
       --classifierMulti $classifierMulti \
       --filterMethod $filterMethod \
       --filterFrac $filterNum \
