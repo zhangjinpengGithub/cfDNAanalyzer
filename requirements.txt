@@ -19,3 +19,4 @@ sklearn-relief==1.0.0b2
 xgboost==1.6.2
 seaborn==0.12.2
 snfpy==0.2.2
+shap==0.41.0
