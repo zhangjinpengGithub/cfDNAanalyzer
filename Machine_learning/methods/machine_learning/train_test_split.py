@@ -10,7 +10,7 @@ def get_cv(method, nsplit, y, test_ratio=0.2):
     if method.upper() == 'LOO':
         return LeaveOneOut()
     elif method.upper() == 'KFOLD':
-        return StratifiedKFold(n_splits=nsplit, shuffle=True, random_state=42)
+        return StratifiedKFold(n_splits=nsplit, shuffle=True)
     elif method.upper() == 'SINGLE':
         # Create a dummy CV object that returns ONE fold
         class SingleSplit:
@@ -18,7 +18,6 @@ def get_cv(method, nsplit, y, test_ratio=0.2):
                 train_idx, test_idx = train_test_split(
                     np.arange(len(y)),
                     test_size=test_ratio,
-                    random_state=42,
                     stratify=y
                 )
                 yield train_idx, test_idx
