@@ -31,9 +31,19 @@ nohup python run_multi_modality.py \
   --model_method average weighted stack \
   --trans_method pca rbf snf \
   --classifierMulti KNN SVM \
-  --cvMulti Independent \
-  --filterMethod IG \
-  --filterFrac 0.99999 \
+  --cvMulti LOO \
+  --nsplitMulti 5 \
+  --filterMethod IG CHI FS FCBF CC LVF MAD DR MI RLF SURF MSURF \
+  --filterFrac 0.023618328 \
+  --wrapperMethod BOR \
+  --wrapperFrac 0.023618328 \
+  --embeddedMethod LASSO RIDGE ELASTICNET RF \
+  --embeddedFrac 0.023618328 \
+  --hybridType FE \
+  --hybridMethod1 IG \
+  --hybridFrac1 0.023618328 \
+  --hybridMethod2 LASSO \
+  --hybridFrac2 0.023618328\
   --DA_output_dir /home/zky/projects/202312_cfDNA_integrated_tools/2504DA-figure/multi-modality/multi-classs/results > multi_modality-multiclass.out 2>&1 &
 """
 #!/usr/bin/env python3

@@ -32,16 +32,16 @@ def get_args():
     parser.add_argument('--cvSingle', type=str, choices=['LOO', 'KFold', 'Single', 'Independent'], default='LOO', help="CV method for single modality. Options: LOO, KFold, Single, Independent")
     parser.add_argument('--cvSingle_test_ratio', type=float, default=0.2, help="Test set ratio for Single train/test split mode")
     parser.add_argument('--nsplitSingle', type=int, default=5, help='Number of folds for KFold in single modality')
-    parser.add_argument('--classifierSingle', nargs='+', choices=['KNN', 'SVM', 'RandomForest', 'GaussianNB', 'LogisticRegression', 'XGB', 'GBM'], default=None, help='Classifiers for single modality. Options: KNN, SVM, RandomForest, GaussianNB, LogisticRegression, XGB')
+    parser.add_argument('--classifierSingle', nargs='+', choices=['KNN', 'SVM', 'RandomForest', 'GaussianNB', 'LogisticRegression', 'XGB'], default=None, help='Classifiers for single modality. Options: KNN, SVM, RandomForest, GaussianNB, LogisticRegression, XGB')
 
     parser.add_argument('--cvMulti', type=str, choices=['LOO', 'KFold', 'Single', 'Independent'], default='LOO', help='CV method for multi modality. Options: LOO, KFold, Single')
     parser.add_argument('--cvMulti_test_ratio', type=float, default=0.2, help="Test set ratio for Single train/test split mode")
     parser.add_argument('--nsplitMulti', type=int, default=5, help='Number of folds for KFold in multi modality')
-    parser.add_argument('--classifierMulti', nargs='+', choices=['KNN', 'SVM', 'RandomForest', 'GaussianNB', 'LogisticRegression', 'XGB', 'GBM'], default=None, help='Classifiers for multi modality. Options: KNN, SVM, RandomForest, GaussianNB, LogisticRegression, XGB')
+    parser.add_argument('--classifierMulti', nargs='+', choices=['KNN', 'SVM', 'RandomForest', 'GaussianNB', 'LogisticRegression', 'XGB'], default=None, help='Classifiers for multi modality. Options: KNN, SVM, RandomForest, GaussianNB, LogisticRegression, XGB')
     parser.add_argument('--fusion_type', type=str, nargs='+', choices=['concat', 'model', 'trans'], default=None, help='Fusion strategy for multi-modality. Options: concat, model, trans (support multiple)')
     parser.add_argument('--model_method', type=str, nargs='+', choices=['average', 'weighted', 'majority', 'stack'], default=None, help='Model fusion methods: average, weighted, majority, stack (for fusion_type=model)')
     parser.add_argument('--trans_method', type=str, nargs='+', choices=['pca', 'linear', 'polynomial', 'rbf', 'sigmoid', 'snf'], default=None, help='Transformation methods for trans fusion: pca, linear, polynomial, rbf, sigmoid, snf')
-    parser.add_argument('--external_input_dir', type=str, required=True)
+
     parser.add_argument('--explain', nargs='*', default=[], choices=['SHAP', 'perm'], help='Optional: compute SHAP values or permutation importance (time-consuming)')
     
     # Output control

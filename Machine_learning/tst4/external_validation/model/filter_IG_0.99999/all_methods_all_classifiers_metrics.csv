@@ -1,7 +1,0 @@
-FusionType,FusionMethod,FS_Combination,Classifier,accuracy,precision,recall,sensitivity,specificity,f1,auc,TotalTime_sec,FinalMemory_MB,PeakMemory_MB
-model,average,filter_IG_0.99999,KNN,0.170886,0.170886,1.0,1.0,0.0,0.291892,0.266964,0.1908,194.75,0.7445
-model,average,filter_IG_0.99999,SVM,0.829114,0.0,0.0,0.0,1.0,0.0,0.255973,0.1807,194.75,0.7079
-model,weighted,filter_IG_0.99999,KNN,0.170886,0.170886,1.0,1.0,0.0,0.291892,0.25053,0.1839,194.75,0.713
-model,weighted,filter_IG_0.99999,SVM,0.829114,0.0,0.0,0.0,1.0,0.0,0.251838,0.1889,194.75,0.6864
-model,stack,filter_IG_0.99999,KNN,0.170886,0.170886,1.0,1.0,0.0,0.291892,0.25053,0.1732,194.75,0.7906
-model,stack,filter_IG_0.99999,SVM,0.170886,0.170886,1.0,1.0,0.0,0.291892,0.250141,0.1744,194.75,0.6901

@@ -91,9 +91,9 @@ are merged and then deleted.
 
 Example
 -------
-nohup python run_single_external.py \
-  --modality multi \
-  --input_dir /home/keyao/251014_tst_cfdna/EM \
+nohup python run_single_independent_validation.py \
+  --modality single \
+  --input_dir ./test_data_for_independent_validation/new_two \
   --classifierSingle KNN SVM \
   --cvSingle Independent \
   --filterMethod IG \

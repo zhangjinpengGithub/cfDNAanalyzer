@@ -1,2 +1,0 @@
-FusionType,FusionMethod,FS_Combination,Classifier,accuracy,precision,recall,sensitivity,specificity,f1,auc,TotalTime_sec,FinalMemory_MB,PeakMemory_MB
-trans,snf,filter_IG_0.99999,SVM,0.170886,0.170886,1.0,1.0,0.0,0.291892,0.236429,0.2008,195.4375,14.2056

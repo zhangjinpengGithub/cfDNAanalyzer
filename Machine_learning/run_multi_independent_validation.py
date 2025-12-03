@@ -98,8 +98,8 @@ Assuming your main config parser supports the following arguments:
 
 nohup python run_multi_independent_only.py \
   --modality multi \
-  --input_dir ./train_data/raw_two/raw_no_stand/std_train \
-  --external_input_dir ./test_data/new_two/std_test \
+  --input_dir ./train_data_for_independent_validation/raw_two/raw_no_stand/std_train \
+  --external_input_dir ./test_data_for_independent_validation/new_two/std_test \
   --fusion_type concat model trans \
   --model_method average weighted stack \
   --trans_method pca rbf snf \

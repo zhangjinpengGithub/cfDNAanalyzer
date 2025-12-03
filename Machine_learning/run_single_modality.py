@@ -53,7 +53,6 @@ nohup python run_single_modality.py \
     --DA_output_dir two_class_output \
     > run_single_modality11.log 2>&1 &
 """
-
 import os
 import pandas as pd
 import numpy as np

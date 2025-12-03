@@ -1,2 +1,0 @@
-FusionType,FusionMethod,FS_Combination,Classifier,accuracy,precision,recall,sensitivity,specificity,f1,auc,TotalTime_sec,FinalMemory_MB,PeakMemory_MB
-model,average,filter_IG_0.99999,KNN,0.170886,0.170886,1.0,1.0,0.0,0.291892,0.266964,0.1908,194.75,0.7445
