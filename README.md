@@ -55,8 +55,8 @@ git clone https://github.com/LiymLab/cfDNAanalyzer.git
 chmod a+x -R ./cfDNAanalyzer
 cd cfDNAanalyzer/
 conda create -n cfDNAanalyzer python=3.7.16 
-conda install -c conda-forge -c bioconda parallel jq
 conda activate cfDNAanalyzer
+conda install -c conda-forge -c bioconda parallel jq
 Rscript install_R_packages.R
 pip install -r requirements.txt
 ```
