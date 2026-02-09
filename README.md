@@ -116,13 +116,13 @@ bash Raw_data_processing.sh -i <InputFile> -o <OutputDirectory> -t <threads> [Op
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.3  <ins>F</ins>ragmentation <ins>P</ins>rofile (FP) ([<ins>Cristiano *et al, Nature*, 2019</ins>](https://doi.org/10.1038/s41586-019-1272-6))
 * Fragmentation profile describes fragmentation patterns of cfDNA across the genome, which is the fraction of short cfDNA fragments (100–150 bp) to long cfDNA fragments (151–220 bp) for each 100kb window across the genome.
 * Fragmentation profiles were implemented using the original source code, with extension to support both hg19 and hg38 genomes. 
-
+* Fragmentation profile shows great sensitivity to coverage especially when the depth of sample is below 1X.
 ### 2.  Region-specific features: 
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1  <ins>N</ins>ucleosome <ins>O</ins>ccupancy and <ins>F</ins>uzziness (NOF) ([<ins>Li *et al, Genome Med.*, 2024</ins>](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-023-01280-6))
 * Nucleosome occupancy reflects the frequency with which nucleosomes occupy a given genomic region in a cell population. Nucleosome occupancy for a specific region is calculated as the average occupancy values of all based in this region.<br>
 * Nucleosome fuzziness is defined as the deviation of nucleosome positions within a region in a cell population and could reflect cell heterogeneity at the chromatin level. Nucleosome fuzziness for a specific region is calculated as the average fuzziness of all the nucleosomes whose center is located within the region.<br>
 *	Nucleosome occupancy and fuzziness was directly implemented using the original source code in its published study without modifications.
-
+*	Nucleosome occupancy and fuzziness shows great sensitivity to coverage especially when the depth of sample is below 1X.
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.2 <ins>N</ins>ucleosome <ins>P</ins>rofile (NP) ([<ins>Doebley *et al, Nat. Commun.*, 2022</ins>](https://www.nature.com/articles/s41467-022-35076-w))
 * Nucleosome profile is a composite coverage profile computed as the mean of the GC-corrected cfDNA fragment midpoint coverage across a set of sites (Binding sites sets of 377 transcription factors as the dafalut). For each set of sites, three features are identified from the composite coverage profile:
    * (1) The average coverage value from ± 30 bp of the central site of each set (central coverage).
@@ -133,28 +133,28 @@ bash Raw_data_processing.sh -i <InputFile> -o <OutputDirectory> -t <threads> [Op
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.3  <ins>W</ins>indowed <ins>P</ins>rotection <ins>S</ins>core (WPS) ([<ins>Snyder *et al, Cell*, 2016</ins>](https://doi.org/10.1016/j.cell.2015.11.050))
 * Windowed protection score is the number of DNA fragments completely spanning a window centered at a given genomic coordinate minus the number of fragments with an endpoint within that same window. WPS can be calculated using long fragments (120–180 bp; 120 bp window) or short fragments (35–80 bp; 16 bp window). The WPS for a specific region is defined as the average WPS of all bases in this region. High WPS values indicate increased protection of DNA from digestion while low values indicate that DNA is unprotected.
 * Windowed protection score was implemented using the original source code, transforming the single-base level calculation to output a region-level WPS for easier downstream interpretation.
-
+*	Windowed protection score shows great sensitivity to coverage especially when the depth of sample is below 1X.
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.4  <ins>O</ins>rientation-aware <ins>C</ins>fDNA <ins>F</ins>ragmentation (OCF) ([<ins>Sun *et al, Genome Res.*, 2019</ins>](https://genome.cshlp.org/content/29/3/418.long))
 * Orientation-aware cfDNA fragmentation is the differences of read densities of the upstream and downstream fragment ends in specific genomic regions.
 * Orientation-aware cfDNA fragmentation retains the original source code, but generalized to enable computation on any user-defined regions through a shell-based workflow.
-
+*	Orientation-aware cfDNA fragmentation shows great sensitivity to coverage especially when the depth of sample is below 1X.
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.5  <ins>E</ins>nd <ins>M</ins>otif frequency and diversity for <ins>R</ins>egions (EMR) ([<ins>Serpas *et al, PNAS*, 2018</ins>](https://www.pnas.org/doi/abs/10.1073/pnas.1815031116) ; [<ins>Jiang *et al, Cancer Discov.*, 2020</ins>](https://doi.org/10.1158/2159-8290.CD-19-0622))
 * We introduced end motif frequency and diversity for regions, which is defined as the frequency and diversity of all 256 4-mer end motifs for each region.<br>
-* End motif frequency and diversity for Regions (EMR)12,13 were calculated using a custom motif-extraction script, adhering to the original study definitions for each user-specified region.
-
+* End motif frequency and diversity for regions was calculated using a custom motif-extraction script, adhering to the original study definitions for each user-specified region.
+*	End motif frequency and diversity for regions shows great sensitivity to coverage especially when the depth of sample is below 1X.
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.6  <ins>F</ins>ragmentation <ins>P</ins>rofile for <ins>R</ins>egions (FPR) ([<ins>Cristiano *et al, Nature*, 2019</ins>](https://doi.org/10.1038/s41586-019-1272-6))
 * We introduced fragmentation profile for regions, which is defined as the fraction of short cfDNA fragments (100–150 bp) to long cfDNA fragments (151–220 bp) for each region.
-*	Fragmentation profiles for regions adapt the FP strategy to user-defined genomic intervals.
-
+*	Fragmentation profiles for regions adapts the FP strategy to user-defined genomic intervals.
+*	Fragmentation profiles for regions shows great sensitivity to coverage especially when the depth of sample is below 1X.
 ### 3.  TSS-based features: 
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1 <ins>P</ins>romoter <ins>F</ins>ragmentation <ins>E</ins>ntropy (PFE) ([<ins>Esfahani *et al, Nat. Biotechnol.*, 2022</ins>](https://doi.org/10.1038/s41587-022-01222-4))<br>
 * Promoter fragmentation entropy quantifies the diversity of cfDNA fragment lengths around the TSSs of genes. It is calculated by a modified Shannon index for lengths of cfDNA fragment where both ends fell within ±1 kb of the TSS. Then this cfDNA entropy measure is adjusted using a Dirichlet-multinomial model for normalization. Finally, we Z-score this entropy value for genes in every sample.
 * Promoter fragmentation entropy was implemented using the original source code in its published study without modifications. 
-
+*	Promoter fragmentation entropy shows great sensitivity to coverage especially when the depth of sample is below 1X.
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.2 <ins>TSS</ins> <ins>C</ins>overage (TSSC) ([<ins>Ulz *et al, Nat. Genet.*, 2016</ins>](https://www.nature.com/articles/ng.3648))
 * TSS coverage refers to the cfDNA sequencing read coverage in the regions surrounding TSSs.
 * TSS coverage was calculated using a custom workflow that integrates deepTools commands to quantify read coverage across promoter regions.
-
+*	TSS coverage shows great sensitivity to coverage especially when the depth of sample is below 1X.
 ### Supported feature processing methods and machine learning models
 
 ### 1. Feature processing 
@@ -390,28 +390,28 @@ bash cfDNAanalyzer.sh -I <InputFile> -o <OutputDirectory> -F <Features> [Options
                                         If integer, the parameter is the absolute number of features to select. If float between 0 and 1, it is the fraction of features to select. Default: [0.2,0.2]
   
 ----- Options for machine learning model building -----
-  --classNum          INT   Number of classification categories (2 or more). Default: [2]
-  --cvSingle          STR   Method spliting training and testing set applied in single modality, options include leave-one-out (LOO), K-fold cross-validation (KFold), single hold-out method (Single) or setting the whole dataset as testing set (Independent). Default: [LOO]
-  --nsplitSingle      INT   Number of folds designated for K-fold cross-validation in single modality. Default: [5]
+  --classNum           INT   Number of classification categories (2 or more). Default: [2]
+  --cvSingle           STR   Method spliting training and testing set applied in single modality, options include leave-one-out (LOO), K-fold cross-validation (KFold), single hold-out method (Single) or setting the whole dataset as testing set (Independent). Default: [LOO]
+  --nsplitSingle       INT   Number of folds designated for K-fold cross-validation in single modality. Default: [5]
   --cvSingle_test_ratio STR Ratio of testing set designated for single hold-out method in single modality. Default: [0.2] 
-  --classifierSingle  STR   Classifiers employed in single modality (KNN SVM RandomForest GaussianNB LogisticRegression XGB).
+  --classifierSingle   STR   Classifiers employed in single modality (KNN SVM RandomForest GaussianNB LogisticRegression XGB).
                             Classifiers should be set as a string separated by space in quotes, e.g., 'KNN XGB'.
                             Default: All available classifiers will be applied.
-  --cvMulti           STR   Method spliting training and testing set applied in multi modalities, options include leave-one-out (LOO), K-fold cross-validation (KFold), single hold-out method (Single) or setting the whole dataset as testing set (Independent). Default: [LOO]
-  --nsplitMulti       INT   Number of folds designated for K-fold cross-validation in multiple modalities. Default: [5]
+  --cvMulti            STR   Method spliting training and testing set applied in multi modalities, options include leave-one-out (LOO), K-fold cross-validation (KFold), single hold-out method (Single) or setting the whole dataset as testing set (Independent). Default: [LOO]
+  --nsplitMulti        INT   Number of folds designated for K-fold cross-validation in multiple modalities. Default: [5]
   --cvMulti_test_ratio STR Ratio of testing set designated for single hold-out method in multi modalities. Default: [0.2] 
-  --classifierMulti   STR   Classifiers employed in multiple modalities (KNN SVM RandomForest GaussianNB LogisticRegression XGB).
+  --classifierMulti    STR   Classifiers employed in multiple modalities (KNN SVM RandomForest GaussianNB LogisticRegression XGB).
                             Classifiers should be set as a string separated by space in quotes, e.g., 'KNN XGB'.
                             Default: All available classifiers will be applied.
-  --modelMethod       STR   Model-based integration methods employed in multiple modality. (average weighted majority stack) 
+  --modelMethod        STR   Model-based integration methods employed in multiple modality. (average weighted majority stack) 
                             Methods should be set as a string separated by space in quotes, e.g., 'average weighted'. 
                             Default: [average]
                             The detailed description of each method can be accessed at https://github.com/LiymLab/cfDNAanalyzer.
-  --transMethod       STR   Transformation-based integration methods employed in multiple modality. (pca linear polynomial rbf sigmoid snf) 
+  --transMethod        STR   Transformation-based integration methods employed in multiple modality. (pca linear polynomial rbf sigmoid snf) 
                             Methods should be set as a string separated by space in quotes, e.g., 'pca linear'. 
                             Default: [pca]
                             The detailed description of each method can be accessed at https://github.com/LiymLab/cfDNAanalyzer.  
-  --explain           STR   Optional model interpretation methods to compute for each trained classifier. (SHAP perm)
+  --explain            STR   Optional model interpretation methods to compute for each trained classifier. (SHAP perm)
                             Methods should be set as a string separated by space in quotes, e.g. 'SHAP perm'.
                             Default: No model interpretation.
 ```
