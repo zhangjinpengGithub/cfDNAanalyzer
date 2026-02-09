@@ -14,7 +14,7 @@ For detailed guidance on feature visualization, feature selection optimization, 
   <ul>
     <li><a href="#Environment-requirement-and-installation">Environment requirement and installation</a></li>
     <li><a href="#Raw-data-processing-optional">Raw data processing (optional)</a></li>
-    <li><a href="#Supported-features-and-feature-extraction">Supported features and feature extraction</a></li>
+    <li><a href="#Supported-features-and-quality-control">Supported features and feature extraction</a></li>
     <li><a href="#Supported-feature-processing-methods-and-machine-learning-models">Supported feature processing methods and machine learning models</a></li>
     <li><a href="#Usage">Usage</a></li>
     <li><a href="#Run-the-usage-example">Run the usage example</a></li>
@@ -102,7 +102,7 @@ bash Raw_data_processing.sh -i <InputFile> -o <OutputDirectory> -t <threads> [Op
   -Q  INT       only include reads with mapping quality >= INT. Default: [20].
 ```
 
-### Supported features and feature extraction
+### Supported features and quality control
 ### 1.  Genome-wide features:
 #### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.1  <ins>C</ins>opy <ins>N</ins>umber <ins>A</ins>lterations (CNA) ([<ins>Adalsteinsson *et al, Nat. Commun.*, 2017</ins>](https://www.nature.com/articles/s41467-017-00965-y))<br>
 * Copy number alterations comprise deletions or amplifications of a particular region of the genome, with a size as low as a few kilobases up to entire chromosomes. 
