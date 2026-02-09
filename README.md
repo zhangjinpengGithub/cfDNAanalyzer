@@ -14,7 +14,7 @@ For detailed guidance on feature visualization, feature selection optimization, 
   <ul>
     <li><a href="#Environment-requirement-and-installation">Environment requirement and installation</a></li>
     <li><a href="#Raw-data-processing-optional">Raw data processing (optional)</a></li>
-    <li><a href="#Supported-features-and-quality-control">Supported features and feature extraction</a></li>
+    <li><a href="#Supported-features-and-quality-control">Supported features and quality control</a></li>
     <li><a href="#Supported-feature-processing-methods-and-machine-learning-models">Supported feature processing methods and machine learning models</a></li>
     <li><a href="#Usage">Usage</a></li>
     <li><a href="#Run-the-usage-example">Run the usage example</a></li>
