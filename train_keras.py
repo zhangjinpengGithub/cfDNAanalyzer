@@ -71,6 +71,19 @@ def load_and_preprocess(data_path, train_info_path, valid_info_path,
     dropped_cols = set(df.columns) - set(df_clean.columns)
     if dropped_cols:
         logger.info(f"删除了 {len(dropped_cols)} 个包含缺失值的列")
+
+    # 进一步处理无穷大和极端异常值，避免 scaler 报错
+    numeric_cols = df_clean.select_dtypes(include=[np.number]).columns
+    if len(numeric_cols) > 0:
+        # 将 inf / -inf 替换为 NaN
+        df_clean[numeric_cols] = df_clean[numeric_cols].replace([np.inf, -np.inf], np.nan)
+        # 再次删除包含 NaN 的列（与前面策略一致）
+        before_cols = set(df.columns)
+        df_clean = df_clean.dropna(axis=1)
+        after_cols = set(df_clean.columns)
+        dropped_inf_cols = before_cols - after_cols - dropped_cols
+        if dropped_inf_cols:
+            logger.info(f"因包含 inf/-inf 或异常值额外删除了 {len(dropped_inf_cols)} 个数值列")
     
     # 加载分组信息
     logger.info(f"加载训练分组: {train_info_path}")
